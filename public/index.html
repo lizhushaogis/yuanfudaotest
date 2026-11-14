@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="把教学想法逐步转为交互方案、执行文档、资源清单和可运行实验。开放的 AI 辅助教研工作台。">
+  <meta name="theme-color" content="#344de8">
+  <title>知行实验室 · AI 交互实验工作台</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a href="#workspace" class="skip-link">跳到工作区</a>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="知行实验室首页"><img src="./favicon.svg" alt=""><span>知行实验室<small>IDEA INTO INTERACTION</small></span></a>
+    <nav class="topnav" aria-label="主导航"><button class="nav-current" id="nav-workbench">实验工作台</button><button id="open-guide">项目说明 ↗</button></nav>
+    <div class="header-actions"><span class="mode-indicator" id="mode-indicator"><i></i>示例模式</span><button class="btn btn-subtle" id="open-settings">连接模型 <span>⌘</span></button></div>
+  </header>
+
+  <main class="shell">
+    <section class="intro" aria-labelledby="page-title">
+      <div><div class="eyebrow"><span class="tiny-line"></span>AI-ASSISTED LEARNING DESIGN</div><h1 id="page-title">让一个教学想法，<br class="mobile-break">成为一次<span>动手探索。</span></h1><p>从教学目标到交互实验，每一步都有依据，每一份产出都能继续使用。</p></div>
+      <div class="intro-visual" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="orbit-node node-a"></span><span class="orbit-node node-b"></span><span class="orbit-node node-c"></span><div class="idea-core">✳</div><span class="mini-tag tag-input">教学目标</span><span class="mini-tag tag-output">交互实验 ↗</span></div>
+    </section>
+
+    <section class="workbench" id="workspace" aria-label="实验生产工作台">
+      <aside class="workflow-panel">
+        <div class="panel-kicker">你的生产流程 <span>01 — 06</span></div>
+        <nav id="step-nav" class="step-nav" aria-label="生产步骤"></nav>
+        <div class="workflow-foot"><span class="foot-symbol">↳</span><strong>先确认，再向前。</strong><p>上游内容发生变化时，下游文档会重新生成。</p><button id="load-example" class="text-button">载入完整示例 <span>↗</span></button></div>
+      </aside>
+
+      <div class="workspace-main">
+        <div class="workspace-topline"><div class="breadcrumb">工作台 <span>/</span> <b id="breadcrumb-current">教学简报</b></div><span class="saved-status" id="saved-status">内容仅保存在当前浏览器</span></div>
+        <div id="stage-content" class="stage-content"></div>
+        <footer class="stage-footer" id="stage-footer"></footer>
+      </div>
+
+      <aside class="inspector">
+        <div class="inspector-heading"><span class="spark-icon">✧</span><h2>这一步，为什么？</h2></div>
+        <div id="inspector-content"></div>
+        <div class="deliverables"><div class="panel-kicker">交付物 <span id="file-count">0 / 6</span></div><div id="deliverable-list"></div></div>
+        <button class="btn btn-outline export-all" id="export-all" disabled>↓ 下载完整交付包</button>
+      </aside>
+    </section>
+    <div class="bottom-note"><span><i class="status-dot"></i> 教研确认教学目标 · AI 辅助生成 · 人工审核交付</span><button id="show-origin" class="text-button">关于这个演示</button></div>
+  </main>
+
+  <dialog id="settings-dialog" class="dialog">
+    <form id="settings-form"><div class="dialog-heading"><div><div class="eyebrow">MODEL CONNECTION</div><h2>连接你的模型服务</h2></div><button type="button" class="icon-close" data-close="settings-dialog" aria-label="关闭">×</button></div>
+      <p>连接后，课程分析与交互设计会真实请求你配置的服务。服务端管理模型 API 密钥，网页仅保存服务地址。</p>
+      <label for="service-url">模型代理地址</label><input id="service-url" type="url" placeholder="https://your-service.example.com" autocomplete="off"><small>本项目附带代理服务，使用 Chat Completions 兼容接口。留空则尝试本站服务。</small>
+      <label for="service-token">服务访问口令（如有）</label><input id="service-token" type="password" placeholder="仅在当前页面内存中使用" autocomplete="off"><small>这是你为代理服务设置的访问口令，不是模型供应商的 API Key。</small>
+      <div class="connection-message" id="connection-message" role="status"></div>
+      <div class="dialog-actions"><button type="button" class="btn btn-outline" id="use-template">使用示例模式</button><button type="submit" class="btn btn-primary">验证并连接</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="guide-dialog" class="dialog guide-dialog"><div class="dialog-heading"><div><div class="eyebrow">ABOUT THE PROJECT</div><h2>从想法到实验的六步</h2></div><button class="icon-close" data-close="guide-dialog" aria-label="关闭">×</button></div>
+    <p>这个工作台把教学设计、交互规格和交付文件串在一起。它是基于通用教研流程重新实现的公开演示，示例文案、图形和代码均在本项目中独立编写。</p>
+    <div class="guide-grid"><article><b>01 · 明确输入</b><p>填写对象、目标和需要比较的条件，界定实验的教学边界。</p></article><article><b>02 · 确认方案</b><p>检查探究问题、观察方式和结论；批准后再细化设计。</p></article><article><b>03 · 固化规格</b><p>将输入、反馈、完成条件写成状态机，避免按钮和语音相互冲突。</p></article><article><b>04 · 提取资源</b><p>从规格直接提取图片、动画和语音需求，文件名保持一致。</p></article><article><b>05 · 保存复现要求</b><p>导出带配置、技术约束和验收步骤的提示词。</p></article><article><b>06 · 体验并交付</b><p>使用同一份配置运行预览，下载可独立打开的 HTML 和文档。</p></article></div>
+    <div class="guide-mode"><strong>示例模式与模型模式</strong><p>示例模式通过内置模板组装文档，不调用 AI。模型模式通过代理请求真实模型；返回内容经过结构校验后再用于文档与预览。实验为概念示意，正式课程仍需学科审核和用户测试。</p></div>
+    <button class="btn btn-primary" data-close="guide-dialog">开始探索 →</button>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
