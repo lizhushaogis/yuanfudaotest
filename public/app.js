@@ -4,7 +4,17 @@ import {generateProject,validateProject,projectDocuments,projectHtml,bundleProje
 const $=id=>document.getElementById(id), storageKey='zx-lab-v2';
 const presetBrief=p=>normalizeBrief({...p,preset:p.id});
 let state={brief:presetBrief(presets[0]),request:{text:'',subject:'',constraints:''},project:null,config:null,docs:null,customPrompt:null,editVersion:0,source:'template',stage:0,unlocked:0}, mode='template',serviceToken='',connectedOrigin='',busy=false,toastTimer;
-try {const s=JSON.parse(localStorage.getItem(storageKey));if(s?.brief){state={...state,...s,brief:normalizeBrief(s.brief),request:s.request||{text:'',subject:'',constraints:''}};if(s.project){validateProject(s.project);state.project=s.project;state.config=s.config||null;state.docs={...projectDocuments(s.project),...(state.customPrompt?{prompt:state.customPrompt}:{})};}else if(s.config){state.config=buildConfig(s.brief,s.config);state.docs=buildDocuments(state.brief,state.config,state.source);}state.stage=Math.max(0,Math.min(5,Number(s.stage)||0));state.unlocked=state.project?Math.max(1,Math.min(5,Number(s.unlocked)||1)):state.config?Math.max(1,Math.min(5,Number(s.unlocked)||1)):0;state.stage=Math.min(state.stage,state.unlocked);}}catch{ /* Invalid or unavailable local storage falls back to a fresh brief. */ }
+function migrateProject(project,request){
+  if(!project||project.interaction?.manipulation)return project;
+  const upgraded={...project};
+  const design=interactionPlanFor(request||project.request||{},project.plan?.interactionType,{...project,interactionDesign:project.interaction||{},__forceManipulation:true});
+  upgraded.interaction=design;
+  upgraded.spec={...project.spec,states:['initial','dragging','feedback','completed'],components:[{id:'manipulation',type:'manipulation-board',label:'主题拖拽操控台'},...(project.spec?.components||[]).filter(item=>item?.type!=='manipulation-board')]};
+  upgraded.acceptance=['打开页面必须先点击开始','拖拽元素只能放入符合主题关系的区域','放错时保留元素并给出主题修正提示','全部元素或路线完成后才显示结论','重置后旧任务不能修改新状态','页面无外部框架、图片或 CDN 依赖'];
+  validateProject(upgraded);
+  return upgraded;
+}
+try {const s=JSON.parse(localStorage.getItem(storageKey));if(s?.brief){state={...state,...s,brief:normalizeBrief(s.brief),request:s.request||{text:'',subject:'',constraints:''}};if(s.project){const migrated=migrateProject(s.project,state.request);state.project=migrated;state.config=s.config||null;state.docs={...projectDocuments(migrated),...(state.customPrompt?{prompt:state.customPrompt}:{})};if(migrated!==s.project){try{localStorage.setItem(storageKey,JSON.stringify({...state,project:migrated}))}catch{}}}else if(s.config){state.config=buildConfig(s.brief,s.config);state.docs=buildDocuments(state.brief,state.config,state.source);}state.stage=Math.max(0,Math.min(5,Number(s.stage)||0));state.unlocked=state.project?Math.max(1,Math.min(5,Number(s.unlocked)||1)):state.config?Math.max(1,Math.min(5,Number(s.unlocked)||1)):0;state.stage=Math.min(state.stage,state.unlocked);}}catch{ /* Invalid or unavailable local storage falls back to a fresh brief. */ }
 try{$('service-url').value=localStorage.getItem('zx-lab-service')||'';}catch{}
 const save=()=>{try{localStorage.setItem(storageKey,JSON.stringify(state));$('saved-status').textContent='已保存在当前浏览器';}catch{$('saved-status').textContent='当前浏览器无法保存；请及时下载';}};
 function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),3000);}
