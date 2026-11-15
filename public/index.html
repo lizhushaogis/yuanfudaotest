@@ -15,7 +15,7 @@
   <header class="topbar">
     <a class="brand" href="./" aria-label="知行实验室首页"><img src="./favicon.svg" alt=""><span>知行实验室<small>IDEA INTO INTERACTION</small></span></a>
     <nav class="topnav" aria-label="主导航"><button class="nav-current" id="nav-workbench">实验工作台</button><button id="open-guide">项目说明 ↗</button></nav>
-    <div class="header-actions"><span class="mode-indicator" id="mode-indicator"><i></i>本地生成器</span><button class="btn btn-subtle" id="open-settings">连接 AI（可选） <span>⌘</span></button></div>
+    <div class="header-actions"><span class="mode-indicator" id="mode-indicator"><i></i>本地生成器</span><button class="btn btn-subtle" id="open-settings">连接 AI <span>⌘</span></button></div>
   </header>
 
   <main class="shell">
@@ -49,9 +49,10 @@
 
   <dialog id="settings-dialog" class="dialog">
     <form id="settings-form"><div class="dialog-heading"><div><div class="eyebrow">MODEL CONNECTION</div><h2>连接你的模型服务</h2></div><button type="button" class="icon-close" data-close="settings-dialog" aria-label="关闭">×</button></div>
-      <p>这是可选增强。即使不连接 API，也可以用本地生成器根据新需求生成不同项目。连接后，模型会帮助理解更复杂的需求；服务端管理模型 API 密钥，网页只保存服务地址。</p>
-      <label for="service-url">模型代理地址</label><input id="service-url" type="url" placeholder="http://127.0.0.1:4173" autocomplete="off"><small>填写你部署的本项目 Node 代理根地址；本机默认是 http://127.0.0.1:4173。GitHub Pages 本身只提供静态页面。</small>
+      <p>要让模型根据每次的新需求生成内容，需要先运行本项目的 Node 代理。<strong>API Key 粘贴在项目根目录的 .env 文件里，不要粘贴到网页或 GitHub。</strong>网页这里只填写代理地址。</p>
+      <label for="service-url">模型代理地址</label><input id="service-url" type="url" placeholder="http://127.0.0.1:4173" autocomplete="off"><small>本机按 README 启动后填 http://127.0.0.1:4173；如果你把代理部署到云端，就填云端 HTTPS 根地址。GitHub Pages 本身只提供静态页面。</small>
       <label for="service-token">服务访问口令（如有）</label><input id="service-token" type="password" placeholder="仅在当前页面内存中使用" autocomplete="off"><small>这是你为代理服务设置的访问口令，不是模型供应商的 API Key。</small>
+      <div class="api-paste-guide"><strong>API Key 的准确粘贴位置</strong><code>LAB_API_KEY=你的模型 API Key</code><span>文件位置：项目根目录 <code>.env</code>。同时填写 <code>LAB_API_BASE</code> 和 <code>LAB_MODEL</code>，再运行 <code>node --env-file=.env server.mjs</code>。</span></div>
       <div class="connection-message" id="connection-message" role="status"></div>
       <div class="dialog-actions"><button type="button" class="btn btn-outline" id="use-template">继续用本地生成器</button><button type="submit" class="btn btn-primary">验证并连接</button></div>
     </form>
