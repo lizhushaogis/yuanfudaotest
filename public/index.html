@@ -50,7 +50,7 @@
   <dialog id="settings-dialog" class="dialog">
     <form id="settings-form"><div class="dialog-heading"><div><div class="eyebrow">MODEL CONNECTION</div><h2>连接你的模型服务</h2></div><button type="button" class="icon-close" data-close="settings-dialog" aria-label="关闭">×</button></div>
       <p>要让模型根据每次的新需求生成内容，需要先运行本项目的 Node 代理。你只需要准备<strong>模型名称和 API Key</strong>；模型服务地址会按模型名称自动选择。<strong>API Key 粘贴在项目根目录的 .env 文件里，不要粘贴到网页或 GitHub。</strong></p>
-      <label for="service-url">模型代理地址</label><input id="service-url" type="url" placeholder="http://127.0.0.1:4173" autocomplete="off"><small>本机按 README 启动后填 http://127.0.0.1:4173；如果你把代理部署到云端，就填云端 HTTPS 根地址。GitHub Pages 本身只提供静态页面。</small>
+      <label for="service-url">模型代理地址</label><input id="service-url" type="url" placeholder="http://127.0.0.1:4173" autocomplete="off"><small>本机代理填 http://127.0.0.1:4173；GitHub Pages 也能连接本机代理，但 .env 的 LAB_ALLOWED_ORIGIN 必须包含 https://lizhushaogis.github.io。若代理部署到云端，请填云端 HTTPS 根地址。</small>
       <label for="service-token">服务访问口令（如有）</label><input id="service-token" type="password" placeholder="仅在当前页面内存中使用" autocomplete="off"><small>这是你为代理服务设置的访问口令，不是模型供应商的 API Key。</small>
       <div class="api-paste-guide"><strong>你只需要提供两项</strong><code>LAB_MODEL=你的模型名称</code><code>LAB_API_KEY=你的模型 API Key</code><span>文件位置：项目根目录 <code>.env</code>。其余代理地址、允许来源和网页配置由项目默认处理；保存后运行 <code>node --env-file=.env server.mjs</code>。</span></div>
       <div class="connection-message" id="connection-message" role="status"></div>

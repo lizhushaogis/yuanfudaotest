@@ -89,7 +89,7 @@ LAB_API_BASE=
 LAB_API_KEY=粘贴你的模型 API Key
 LAB_MODEL=填写你的模型名称
 LAB_ACCESS_TOKEN=choose-a-long-random-service-token
-LAB_ALLOWED_ORIGIN=https://your-name.github.io,http://127.0.0.1:4173
+LAB_ALLOWED_ORIGIN=https://lizhushaogis.github.io,http://127.0.0.1:4173
 HOST=127.0.0.1
 PORT=4173
 ```
@@ -101,6 +101,8 @@ node --env-file=.env server.mjs
 模型供应商需要支持 Chat Completions 和 `response_format: {type: "json_object"}`。如果 `LAB_API_BASE` 留空，服务会按模型名称自动选择常见兼容地址（OpenAI、DeepSeek、通义千问、智谱、Moonshot、豆包）；服务端验证 JSON 结构和主题相关性，模型不满足约束时会提示错误，不会静默切换成模板。
 
 公开代理使用 HTTPS（通常由托管平台或反向代理提供），按托管平台要求设置 `HOST=0.0.0.0`。公网调用必须设置 `LAB_ACCESS_TOKEN`；`LAB_ALLOWED_ORIGIN` 逗号分隔准确的允许来源。访问口令仅保留在网页内存，刷新后需要重新输入。模型 API Key 只配置在服务端，不能填写到网页、提交到 GitHub 或放入 `public/`。代理内置请求大小和频率限制，费用由配置的模型服务承担。
+
+如果你直接打开 GitHub Pages，同时让 Node 代理运行在自己的电脑上，`LAB_ALLOWED_ORIGIN` 至少要包含 `https://lizhushaogis.github.io` 和 `http://127.0.0.1:4173`；修改 `.env` 后必须重启 `node --env-file=.env server.mjs`。否则浏览器会把跨来源拒绝显示成 `Failed to fetch`。
 
 网页连接验证会检查代理配置；首次生成时才实际请求模型。未配置真实密钥的公开演示不能证明供应商接口已经联调成功。
 
