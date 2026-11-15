@@ -118,15 +118,108 @@ export function interactionPlanFor(request, type, candidate = {}) {
     'particle-simulation': { mode: 'parameter', label: '变量滑杆实验台', prompt: '拖动变量滑杆，观察示意中的运动变化，再选择条件记录发现。', controlLabel: '变量强度', dimension: '变化幅度', min: 1, max: 5, step: 1 },
     'cause-effect': { mode: 'cause-effect', label: '因果调节台', prompt: '调节因素强度，观察结果指示，再选择条件解释因果关系。', controlLabel: '影响强度', dimension: '结果变化', min: 0, max: 100, step: 10 },
   }[type] || { mode: 'compare', label: '观察比较台', prompt: '选择不同条件，比较反馈后记录发现。', controlLabel: '观察条件', dimension: '现象差异' };
+  const variant = inferSceneVariant(request?.text || '', type);
+  const sceneDefaults = {
+    'carbon-cycle': {
+      sceneTitle: '碳原子旅行地图',
+      rationale: '把碳在大气、植物、动物、土壤和燃料之间的迁移变成一条可追踪的旅行路线，学生每次点击都能看到碳从哪里来、到哪里去。',
+      metaphor: '一张由六个碳库组成的环形旅行地图',
+      userActions: [
+        { label: '追踪一个碳库', action: '点击一个碳循环节点', effect: '高亮该节点，并显示碳在此处的去向。' },
+        { label: '沿过程前进', action: '按顺序查看吸收、传递、呼吸、分解、埋藏和燃烧', effect: '路线图逐段点亮，反馈说明碳形态如何变化。' },
+        { label: '解释回路', action: '完成全部节点后比较起点和终点', effect: '生成一段基于观察记录的循环解释。' },
+      ],
+      visualElements: ['中心碳循环环路', '大气、植物、动物、土壤和化石燃料节点', '沿节点移动的碳原子标记'],
+      feedbackRule: '每次点击只点亮当前迁移环节，并说明碳进入或离开哪个碳库。',
+      completionRule: '六个迁移节点都观察后，显示“碳回到大气并继续循环”的归纳。',
+    },
+    'water-cycle': {
+      sceneTitle: '一滴水的天空旅行',
+      rationale: '用一滴水从地表到云层再回到地面的路线，让蒸发、凝结和降水形成可操作的因果链。',
+      metaphor: '地表、云层和降水之间的一滴水旅行',
+      userActions: [
+        { label: '加热地表', action: '点击蒸发阶段', effect: '水滴从地表上升到云层，反馈说明能量的作用。' },
+        { label: '冷却云层', action: '点击凝结阶段', effect: '云中出现小水滴，反馈说明水蒸气如何变回液态水。' },
+        { label: '让水滴回落', action: '点击降水阶段', effect: '水滴回到地面，路线图闭合。' },
+      ],
+      visualElements: ['地表水池', '上升的水蒸气', '云层中的小水滴', '回落的降水箭头'],
+      feedbackRule: '每一步都更新一滴水的位置，并把观察到的状态变化与下一阶段连接起来。',
+      completionRule: '蒸发、凝结、降水全部观察后，显示完整水循环路线。',
+    },
+    photosynthesis: {
+      sceneTitle: '叶片里的物质交换台',
+      rationale: '把光照、二氧化碳和水分放到同一片叶片的输入输出场景中，学生可以逐项观察原料进入和氧气释放。',
+      metaphor: '一片叶子的输入—合成—输出工作台',
+      userActions: [
+        { label: '打开光照', action: '点击光照条件', effect: '叶片获得合成有机物所需的能量提示。' },
+        { label: '送入二氧化碳', action: '点击二氧化碳条件', effect: '空气中的碳进入叶片，反馈说明它是合成原料。' },
+        { label: '补充水分', action: '点击水分条件', effect: '根部吸收的水被接入叶片，画面显示氧气释放结果。' },
+      ],
+      visualElements: ['叶片和叶脉', '从空气进入的二氧化碳箭头', '从根部进入的水分箭头', '释放到空气中的氧气气泡'],
+      feedbackRule: '每次操作只改变一个输入通道，并在叶片旁显示该输入对合成过程的作用。',
+      completionRule: '三个输入条件都观察后，显示“光合作用需要光、水和二氧化碳”的证据链。',
+    },
+    classification: {
+      sceneTitle: '证据分类工作台',
+      rationale: '先呈现对象的可观察证据，再让学生依据证据归类，避免只凭记忆点击答案。',
+      metaphor: '带证据卡和分类槽的研究工作台',
+      userActions: [
+        { label: '翻看证据', action: '阅读对象的结构或材料特征', effect: '证据卡保留在工作台上，成为分类依据。' },
+        { label: '放入类别', action: '选择最符合证据的类别', effect: '显示匹配理由，并允许重新判断。' },
+        { label: '复核边界', action: '比较相似对象的证据', effect: '提示哪些特征真正决定分类。' },
+      ],
+      visualElements: ['对象证据卡', '带标签的分类槽', '分类依据标记'],
+      feedbackRule: '反馈先指出证据，再说明它支持或不支持当前类别。',
+      completionRule: '所有对象都完成分类并复核依据后，显示分类规则。',
+    },
+    particles: {
+      sceneTitle: '粒子运动观察舱',
+      rationale: '用一个可连续调节的变量连接粒子速度和宏观现象，学生能看到参数变化带来的定性差异。',
+      metaphor: '可调温度的粒子观察舱',
+      userActions: [
+        { label: '调节变量', action: '拖动滑杆改变变量强度', effect: '粒子运动速度和轨迹密度同步变化。' },
+        { label: '记录现象', action: '选择一个条件保存观察', effect: '系统保留当前参数和粒子状态，便于比较。' },
+        { label: '比较两次', action: '改变变量后再次观察', effect: '两次运动状态并列显示，支持解释变化关系。' },
+      ],
+      visualElements: ['粒子观察舱', '运动轨迹', '变量滑杆', '前后状态对照卡'],
+      feedbackRule: '滑杆每次改变都会立即更新粒子的运动节奏，并显示当前观察维度。',
+      completionRule: '至少记录两个不同变量条件后，显示定性比较结果。',
+    },
+  }[variant] || {
+    sceneTitle: `${clean(request?.title || '本主题', 32)}主题探索台`,
+    rationale: '把本次主题中的对象、变化和证据组织成一个可操作的观察场景，每一步都服务于探究问题。',
+    metaphor: '围绕主题对象展开的观察与比较工作台',
+    userActions: [
+      { label: '观察对象', action: '点击一个主题条件', effect: '画面聚焦到对应对象并显示可观察现象。' },
+      { label: '比较变化', action: '再选择一个不同条件', effect: '保留两次反馈，提示可以比较的维度。' },
+      { label: '形成解释', action: '完成全部条件后回看记录', effect: '根据观察证据显示主题结论。' },
+    ],
+    visualElements: ['主题对象主图', '条件节点', '变化箭头', '观察记录卡'],
+    feedbackRule: '每次操作聚焦一个条件，反馈只描述与主题有关的可观察变化。',
+    completionRule: '所有条件至少观察一次后，显示基于观察记录的主题归纳。',
+  };
   const raw = candidate.interactionPlan || candidate.interaction || {};
+  const rawDesign = candidate.interactionDesign || candidate.design || candidate.interaction || {};
   const allowedModes = new Set(['compare', 'process', 'sequence', 'classification', 'parameter', 'cause-effect']);
   const number = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
   const min = number(raw.min, defaults.min ?? 0), max = number(raw.max, defaults.max ?? 100);
+  const actions = Array.isArray(rawDesign.userActions) ? rawDesign.userActions.map((item, index) => {
+    if (typeof item === 'string') return { label: `操作${index + 1}`, action: clean(item, 160), effect: '查看与主题相关的反馈。' };
+    return { label: clean(item?.label || `操作${index + 1}`, 40), action: clean(item?.action || item?.instruction || '', 180), effect: clean(item?.effect || item?.feedback || '', 220) };
+  }).filter(item => item.action && item.effect).slice(0, 6) : [];
+  const visuals = Array.isArray(rawDesign.visualElements) ? rawDesign.visualElements.map(item => clean(typeof item === 'string' ? item : item?.label || item?.description, 120)).filter(Boolean).slice(0, 8) : [];
   return {
     mode: allowedModes.has(raw.mode) ? raw.mode : defaults.mode,
     label: clean(raw.label || defaults.label, 60), prompt: clean(raw.prompt || defaults.prompt, 400),
     controlLabel: clean(raw.controlLabel || defaults.controlLabel, 40), dimension: clean(raw.dimension || defaults.dimension, 40),
     min, max: Math.max(min + 1, max), step: Math.max(1, number(raw.step, defaults.step ?? 10)),
+    sceneTitle: clean(rawDesign.sceneTitle || sceneDefaults.sceneTitle, 100),
+    rationale: cleanMultiline(rawDesign.rationale || sceneDefaults.rationale, 700),
+    metaphor: clean(rawDesign.metaphor || sceneDefaults.metaphor, 180),
+    userActions: actions.length >= 2 ? actions : sceneDefaults.userActions,
+    visualElements: visuals.length >= 1 ? visuals : sceneDefaults.visualElements,
+    feedbackRule: cleanMultiline(rawDesign.feedbackRule || sceneDefaults.feedbackRule, 500),
+    completionRule: cleanMultiline(rawDesign.completionRule || sceneDefaults.completionRule, 500),
   };
 }
 
@@ -169,7 +262,10 @@ export function projectDocuments(project) {
   const p = project.plan, type = interactionCatalog[p.interactionType];
   const rows = project.conditions.map((c, i) => `| ${i + 1} | ${c.label.replaceAll('|', '／')} | ${c.observation.replaceAll('|', '／')} |`).join('\n');
   const plan = `# ${p.title} · 教学方案\n\n- 目标用户：${p.audience}\n- 学科主题：${p.subject || '待补充'}\n- 教学目标：${p.goal}\n- 探究问题：${p.question}\n- 预期结论：${p.conclusion}\n- 交互类型：${type.label}（${type.description}）\n\n## 观察条件\n\n| 序号 | 条件 | 观察反馈 |\n| --- | --- | --- |\n${rows}\n\n## 人工审核\n\n- [ ] 学科表述准确。\n- [ ] 每个条件都能支持教学目标。\n- [ ] 结论没有超过观察证据。\n`;
-  const spec = `# ${p.title} · 交互执行规格\n\n## 交互台设计\n\n- 模式：${project.interaction?.label || "观察比较台"}\n- 主要控件：${project.interaction?.controlLabel || "观察条件"}\n- 引导语：${project.interaction?.prompt || "选择不同条件，比较反馈后记录发现。"}\n- 观察维度：${project.interaction?.dimension || "现象差异"}\n\n## 状态机\n\n\`${project.spec.states.join(' → ')}\`\n\n- 初始态：${project.scene.instruction}\n- 完成条件：${project.spec.completionRule}\n- 重置规则：${project.spec.resetRule}\n- 反馈时长：${project.spec.duration} ms；语音开启时等待动画和朗读都结束。\n\n## 组件\n\n${project.spec.components.map(c => `- ${c.type}：${c.label}`).join('\n')}\n\n## 验收规则\n\n${project.acceptance.map(a => `- [ ] ${a}`).join('\n')}\n`;
+  const interaction = project.interaction || {};
+  const actionRows = (interaction.userActions || []).map((a, i) => `${i + 1}. **${a.label}**：${a.action} → ${a.effect}`).join('\n');
+  const visualRows = (interaction.visualElements || []).map(item => `- ${item}`).join('\n');
+  const spec = `# ${p.title} · 交互执行规格\n\n## AI 生成的主题场景\n\n- 场景名称：${interaction.sceneTitle || "主题探索台"}\n- 设计理由：${interaction.rationale || "围绕本主题组织可观察的操作。"}\n- 场景隐喻：${interaction.metaphor || "观察与比较工作台"}\n\n### 用户动作\n\n${actionRows || '1. 选择主题条件并查看反馈。'}\n\n### 画面元素\n\n${visualRows || '- 主题对象主图'}\n\n- 反馈规则：${interaction.feedbackRule || "每次操作都显示与主题相关的观察反馈。"}\n- AI 生成的完成判断：${interaction.completionRule || project.spec.completionRule}\n\n## 实现骨架（系统内部）\n\n- 内部状态骨架：${interaction.label || "观察比较台"}；仅用于保证按钮、反馈、重置和完成状态安全，不是用户选择的模板。\n- 主要控件：${interaction.controlLabel || "观察条件"}\n- 引导语：${interaction.prompt || "选择不同条件，比较反馈后记录发现。"}\n- 观察维度：${interaction.dimension || "现象差异"}\n\n## 状态机\n\n\`${project.spec.states.join(' → ')}\`\n\n- 初始态：${project.scene.instruction}\n- 完成条件：${project.spec.completionRule}\n- 重置规则：${project.spec.resetRule}\n- 反馈时长：${project.spec.duration} ms；语音开启时等待动画和朗读都结束。\n\n## 组件\n\n${project.spec.components.map(c => `- ${c.type}：${c.label}`).join('\n')}\n\n## 验收规则\n\n${project.acceptance.map(a => `- [ ] ${a}`).join('\n')}\n`;
   const assets = `# ${p.title} · 资源清单\n\n| 文件 | 类型 | 目的 | 状态 |\n| --- | --- | --- | --- |\n${project.assets.map(a => `| ${a.file} | ${a.kind} | ${a.purpose.replaceAll('|', '／')} | ${a.status} |`).join('\n')}\n\n程序图形是概念示意，正式课程仍需美术、配音和学科审核。\n`;
   const prompt = `# ${p.title} · 复现提示词\n\n你是教育交互前端开发者。请根据下方项目 JSON 生成可离线打开的 HTML。不要添加未在配置中声明的操作，不生成虚构测量数据，不依赖 CDN。\n\n\`\`\`json\n${JSON.stringify(project, null, 2)}\n\`\`\`\n\n必须实现：开始入口、${project.spec.states.join(' → ')} 状态转移、反馈期间锁定、完成后结论、重置取消旧任务、键盘可操作和移动端布局。完成后逐条执行验收清单。\n`;
   return { plan, spec, assets, prompt };
@@ -177,7 +273,7 @@ export function projectDocuments(project) {
 
 export const projectMarkup = `<main class="generated-lab"><header><div><span class="eyebrow">GENERATED LEARNING EXPERIENCE</span><h1 id="title"></h1><p id="meta"></p></div><button id="reset" class="quiet">↺ 重新探索</button></header><p id="question" class="question"></p><div class="generated-grid"><section class="visual-card"><div id="visual"></div><span class="visual-note">程序生成概念示意 · 非测量数据</span></section><section class="control-card"><div class="progress-line"><strong id="progress"></strong><button id="voice" class="quiet" aria-pressed="false">语音：关闭</button></div><div id="interaction-hint" class="interaction-hint"></div><div id="parameter"></div><div id="workspace-extra"></div><div id="conditions"></div><button id="start" class="primary">开始探索 →</button><div id="feedback" class="feedback" role="status" aria-live="polite"></div></section></div><section id="conclusion" class="conclusion" hidden></section></main>`;
 
-export const projectStyles = `*{box-sizing:border-box}body{margin:0;background:#f5f8fc;color:#26354b;font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;font-size:14px}.generated-lab{max-width:1080px;margin:auto;padding:28px}.generated-lab header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.eyebrow{font-size:9px;letter-spacing:2px;color:#7d8fa8}.generated-lab h1{font-size:24px;margin:8px 0 4px}.generated-lab #meta,.question{color:#8190a5;font-size:11px;line-height:1.7;margin:0}.question{margin:15px 0 20px;font-size:13px}.generated-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:20px}.visual-card,.control-card{background:#fff;border:1px solid #dfe8f1;border-radius:16px;box-shadow:0 8px 28px #304e7510}.visual-card{position:relative;min-height:330px;display:flex;align-items:center;overflow:hidden;background:linear-gradient(150deg,#eef8f5,#f8fbff)}#visual{width:100%}svg{display:block;width:100%;height:auto}.visual-note{position:absolute;left:14px;bottom:12px;color:#81958f;font-size:9px}.control-card{padding:20px}.progress-line{display:flex;justify-content:space-between;align-items:center;color:#7e8ca1;font-size:11px;margin-bottom:13px}.quiet{border:0;background:none;color:#7c899d;font-size:11px;padding:6px 0;cursor:pointer}.condition{width:100%;border:1px solid #dde5ee;background:#fff;border-radius:9px;padding:12px 14px;margin:0 0 9px;text-align:left;display:flex;justify-content:space-between;gap:10px;color:#35455d}.condition:hover:not(:disabled){border-color:#9eaff4;background:#f8f9ff}.condition:disabled{opacity:.5}.condition.done{background:#eff8f2;border-color:#cde8d7;color:#438061;opacity:1}.condition.active{background:#eef2ff;border-color:#9eaff4;opacity:1}.primary{width:100%;border:0;border-radius:8px;background:#344de8;color:white;padding:12px;font-size:12px;cursor:pointer;margin-top:4px}.feedback{min-height:65px;padding-top:13px;color:#65748a;font-size:11px;line-height:1.85}.conclusion{margin-top:18px;border:1px solid #dce5fc;border-radius:10px;background:#edf2ff;color:#506088;padding:16px;font-size:12px;line-height:1.9}[hidden]{display:none!important}.range-wrap{padding:10px 0 14px;color:#718096;font-size:10px}.interaction-hint{margin:0 0 12px;padding:10px 12px;border:1px solid #e3e9fa;border-radius:9px;background:#f7f9ff;color:#66779b;font-size:10px;line-height:1.7}.rich-control{padding:11px 12px;border:1px solid #e6ebf5;border-radius:10px;background:#fbfcff}.rich-control small{display:block;margin-top:6px;color:#9aa7ba}.result-meter{height:6px;margin-top:9px;border-radius:10px;background:#e9eef8;overflow:hidden}.result-meter i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#7c91d7,#4eae8e);transition:width .2s}.step-roadmap,.evidence-card,.compare-board{display:grid;gap:7px;margin:0 0 13px;padding:12px;border:1px solid #e6ebf5;border-radius:10px;background:#fbfcff;color:#6d7c92;font-size:10px;line-height:1.7}.step-roadmap>strong,.evidence-card>strong,.compare-board>strong{color:#55678d;font-size:11px}.step-roadmap>span,.compare-board>span{color:#96a2b5}.step-roadmap>div{display:flex;gap:5px;flex-wrap:wrap}.step-roadmap b{display:flex;align-items:center;gap:4px;padding:5px 7px;border-radius:7px;background:#f0f3f8;color:#97a2b2;font-weight:500}.step-roadmap b.current{background:#eef2ff;color:#657bd0}.step-roadmap b.done{background:#eef8f2;color:#4f9878}.step-roadmap i{font-style:normal;font-size:9px}.evidence-card p{margin:0;color:#5e6f87}.evidence-card small{color:#9aa7b8}.compare-board>div{display:grid;grid-template-columns:1fr 1fr;gap:7px}.compare-board article{min-height:76px;padding:8px;border:1px dashed #d9e1ed;border-radius:8px;background:#fff}.compare-board article small,.compare-board article b{display:block}.compare-board article small{color:#a0aaba;font-size:9px}.compare-board article b{margin-top:3px;color:#586b89;font-size:10px}.compare-board article p{margin:5px 0 0;color:#8c99ab;font-size:9px;line-height:1.6}@media(max-width:650px){.compare-board>div{grid-template-columns:1fr}}.range-wrap input{width:100%}.range-value{float:right;color:#536fc4}.flow-arrow{stroke:#7a91e2;stroke-width:3;stroke-linecap:round;stroke-dasharray:7 7;animation:dash 1.8s linear infinite}.particle-dot{animation:drift var(--speed,2.8s) ease-in-out infinite alternate}.pulse-node{animation:pulse 1.1s ease-in-out infinite alternate}@keyframes dash{to{stroke-dashoffset:-28}}@keyframes drift{to{transform:translate(18px,-10px)}}@keyframes pulse{to{opacity:.45}}@media(max-width:650px){.generated-lab{padding:18px}.generated-grid{grid-template-columns:1fr;gap:14px}.visual-card{min-height:230px}.generated-lab h1{font-size:19px}.control-card{padding:16px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}}`;
+export const projectStyles = `*{box-sizing:border-box}body{margin:0;background:#f5f8fc;color:#26354b;font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;font-size:14px}.generated-lab{max-width:1080px;margin:auto;padding:28px}.generated-lab header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.eyebrow{font-size:9px;letter-spacing:2px;color:#7d8fa8}.generated-lab h1{font-size:24px;margin:8px 0 4px}.generated-lab #meta,.question{color:#8190a5;font-size:11px;line-height:1.7;margin:0}.question{margin:15px 0 20px;font-size:13px}.generated-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:20px}.visual-card,.control-card{background:#fff;border:1px solid #dfe8f1;border-radius:16px;box-shadow:0 8px 28px #304e7510}.visual-card{position:relative;min-height:330px;display:flex;align-items:center;overflow:hidden;background:linear-gradient(150deg,#eef8f5,#f8fbff)}#visual{width:100%}svg{display:block;width:100%;height:auto}.visual-note{position:absolute;left:14px;bottom:12px;color:#81958f;font-size:9px}.control-card{padding:20px}.progress-line{display:flex;justify-content:space-between;align-items:center;color:#7e8ca1;font-size:11px;margin-bottom:13px}.quiet{border:0;background:none;color:#7c899d;font-size:11px;padding:6px 0;cursor:pointer}.condition{width:100%;border:1px solid #dde5ee;background:#fff;border-radius:9px;padding:12px 14px;margin:0 0 9px;text-align:left;display:flex;justify-content:space-between;gap:10px;color:#35455d}.condition:hover:not(:disabled){border-color:#9eaff4;background:#f8f9ff}.condition:disabled{opacity:.5}.condition.done{background:#eff8f2;border-color:#cde8d7;color:#438061;opacity:1}.condition.active{background:#eef2ff;border-color:#9eaff4;opacity:1}.primary{width:100%;border:0;border-radius:8px;background:#344de8;color:white;padding:12px;font-size:12px;cursor:pointer;margin-top:4px}.feedback{min-height:65px;padding-top:13px;color:#65748a;font-size:11px;line-height:1.85}.conclusion{margin-top:18px;border:1px solid #dce5fc;border-radius:10px;background:#edf2ff;color:#506088;padding:16px;font-size:12px;line-height:1.9}[hidden]{display:none!important}.range-wrap{padding:10px 0 14px;color:#718096;font-size:10px}.interaction-hint{margin:0 0 12px;padding:10px 12px;border:1px solid #e3e9fa;border-radius:9px;background:#f7f9ff;color:#66779b;font-size:10px;line-height:1.7}.rich-control{padding:11px 12px;border:1px solid #e6ebf5;border-radius:10px;background:#fbfcff}.rich-control small{display:block;margin-top:6px;color:#9aa7ba}.result-meter{height:6px;margin-top:9px;border-radius:10px;background:#e9eef8;overflow:hidden}.result-meter i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#7c91d7,#4eae8e);transition:width .2s}.design-card{display:grid;gap:6px;margin:0 0 13px;padding:13px 14px;border:1px solid #dbe9e4;border-radius:11px;background:linear-gradient(135deg,#f4fbf7,#f7f9ff);color:#60728a;font-size:10px;line-height:1.75}.design-card strong{color:#3e806c;font-size:12px}.design-card b{color:#536a89;font-weight:600}.design-card ul{margin:2px 0 0;padding-left:17px}.design-card li{margin:2px 0}.design-card small{color:#8998aa}.step-roadmap,.evidence-card,.compare-board{display:grid;gap:7px;margin:0 0 13px;padding:12px;border:1px solid #e6ebf5;border-radius:10px;background:#fbfcff;color:#6d7c92;font-size:10px;line-height:1.7}.step-roadmap>strong,.evidence-card>strong,.compare-board>strong{color:#55678d;font-size:11px}.step-roadmap>span,.compare-board>span{color:#96a2b5}.step-roadmap>div{display:flex;gap:5px;flex-wrap:wrap}.step-roadmap b{display:flex;align-items:center;gap:4px;padding:5px 7px;border-radius:7px;background:#f0f3f8;color:#97a2b2;font-weight:500}.step-roadmap b.current{background:#eef2ff;color:#657bd0}.step-roadmap b.done{background:#eef8f2;color:#4f9878}.step-roadmap i{font-style:normal;font-size:9px}.evidence-card p{margin:0;color:#5e6f87}.evidence-card small{color:#9aa7b8}.compare-board>div{display:grid;grid-template-columns:1fr 1fr;gap:7px}.compare-board article{min-height:76px;padding:8px;border:1px dashed #d9e1ed;border-radius:8px;background:#fff}.compare-board article small,.compare-board article b{display:block}.compare-board article small{color:#a0aaba;font-size:9px}.compare-board article b{margin-top:3px;color:#586b89;font-size:10px}.compare-board article p{margin:5px 0 0;color:#8c99ab;font-size:9px;line-height:1.6}@media(max-width:650px){.compare-board>div{grid-template-columns:1fr}}.range-wrap input{width:100%}.range-value{float:right;color:#536fc4}.flow-arrow{stroke:#7a91e2;stroke-width:3;stroke-linecap:round;stroke-dasharray:7 7;animation:dash 1.8s linear infinite}.particle-dot{animation:drift var(--speed,2.8s) ease-in-out infinite alternate}.pulse-node{animation:pulse 1.1s ease-in-out infinite alternate}@keyframes dash{to{stroke-dashoffset:-28}}@keyframes drift{to{transform:translate(18px,-10px)}}@keyframes pulse{to{opacity:.45}}@media(max-width:650px){.generated-lab{padding:18px}.generated-grid{grid-template-columns:1fr;gap:14px}.visual-card{min-height:230px}.generated-lab h1{font-size:19px}.control-card{padding:16px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}}`;
 
 export function projectRuntime(project) {
   const $ = id => document.getElementById(id), esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -208,6 +304,10 @@ export function projectRuntime(project) {
   }
   function renderExtra() {
     const extra = $('workspace-extra'); extra.replaceChildren();
+    const design = document.createElement('section'); design.className = 'design-card';
+    const actions = Array.isArray(interaction.userActions) ? interaction.userActions : [];
+    design.innerHTML = `<strong>${esc(interaction.sceneTitle || interaction.label || '主题探索台')}</strong><div><b>为什么这样设计：</b>${esc(interaction.rationale || '围绕本主题组织可观察的操作。')}</div><small>${esc(interaction.metaphor || '')}</small><div><b>你将这样操作：</b><ul>${actions.map(item => `<li><b>${esc(item.label)}：</b>${esc(item.action)} → ${esc(item.effect)}</li>`).join('')}</ul></div><div><b>反馈规则：</b>${esc(interaction.feedbackRule || '每次操作显示与主题有关的观察反馈。')}</div><div><b>完成后：</b>${esc(interaction.completionRule || project.spec.completionRule || '完成全部观察后显示主题归纳。')}</div>`;
+    extra.append(design);
     const mode = interaction.mode;
     if (mode === 'parameter' || mode === 'cause-effect') {
       const wrap = document.createElement('label'); wrap.className = 'range-wrap rich-control';

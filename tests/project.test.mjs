@@ -30,7 +30,10 @@ test('projects expose a topic-specific interaction plan and richer controls', ()
   const cause = generateProject({text: '让学生调节光照强度，观察光合作用产生氧气的变化。'});
   assert.equal(cause.interaction.mode, 'cause-effect');
   assert.equal(cause.interaction.controlLabel, '影响强度');
+  assert.match(cause.interaction.sceneTitle, /叶片/);
+  assert.ok(cause.interaction.userActions.length >= 2);
   assert.match(projectHtml(cause), /interaction-hint/);
+  assert.match(projectHtml(cause), /design-card/);
   assert.match(projectHtml(cause), /result-meter/);
   const sequence = interactionPlanFor({text: '追踪水循环的先后阶段'}, 'sequence-exploration');
   assert.equal(sequence.mode, 'sequence');
@@ -57,4 +60,17 @@ test('model content is constrained into the same project schema', () => {
   assert.equal(project.source, 'model');
   assert.equal(project.plan.interactionType, 'cause-effect');
   assert.equal(project.conditions.length, 2);
+});
+
+test('model interaction design is used instead of a fixed scenario', () => {
+  const project = generateProject({text: '研究潮汐如何影响海岸湿地的生物。'}, {project: {
+    title: '潮汐湿地观察台', interactionType: 'cause-effect', interactionDesign: {
+      sceneTitle: '潮汐闸门观察站', rationale: '把潮位变化与湿地生物活动放在同一个观察站中。', metaphor: '海岸闸门和湿地样方',
+      userActions: [{label: '抬高潮位', action: '拖动潮位滑杆', effect: '水线进入湿地，显示生物活动变化。'}, {label: '记录退潮', action: '点击退潮阶段', effect: '水线后退，保留前后两次观察。'}],
+      visualElements: ['潮位线', '湿地样方'], feedbackRule: '每次操作更新水线并反馈生物活动变化。', completionRule: '完成涨潮和退潮观察后显示比较。'
+    }, conditions: [{label: '涨潮', observation: '水线进入湿地。'}, {label: '退潮', observation: '水线退回海岸。'}]
+  }});
+  assert.equal(project.interaction.sceneTitle, '潮汐闸门观察站');
+  assert.equal(project.interaction.userActions[0].effect, '水线进入湿地，显示生物活动变化。');
+  assert.match(projectDocuments(project).spec, /潮汐闸门观察站/);
 });
