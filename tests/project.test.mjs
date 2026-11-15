@@ -5,6 +5,7 @@ import {generateProject, validateProject, projectDocuments, projectHtml, bundleP
 test('a new process request produces a project, documents, and standalone page', () => {
   const project = generateProject({text: '给八年级做一个水循环探索，学生观察蒸发、凝结和降水。', subject: '科学'});
   assert.equal(project.plan.interactionType, 'process-simulation');
+  assert.equal(project.plan.title, '水循环探索');
   assert.deepEqual(project.conditions.map(c => c.label), ['蒸发', '凝结', '降水']);
   assert.equal(project.spec.states[1], 'step');
   const docs = projectDocuments(project);

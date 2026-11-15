@@ -21,9 +21,15 @@ export function inferInteractionType(text = '') {
   return 'compare-conditions';
 }
 
+export function inferTitle(text = '') {
+  const s = clean(text, 500);
+  const match = s.match(/(?:给|为)[^，。]{0,30}(?:做|制作|设计)一个?(.+?)(?=，|。|让|学生|$)/) || s.match(/(?:做|制作|设计)一个?(.+?)(?=，|。|让|学生|$)/);
+  return clean(match?.[1] || s.split(/[。！？\n]/)[0] || '新的教学交互实验', 80);
+}
+
 export function normalizeRequest(raw = {}) {
   const text = cleanMultiline(typeof raw === 'string' ? raw : raw.request || raw.text || raw.description, 5000);
-  const fallbackTitle = clean((text.match(/[“"「]([^”"」]+)[”"」]/) || [])[1] || text.split(/[。！？\n]/)[0] || '新的教学交互实验', 80);
+  const fallbackTitle = inferTitle(text);
   return {
     text,
     title: clean(raw.title || fallbackTitle, 80),

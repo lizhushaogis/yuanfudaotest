@@ -15,12 +15,12 @@
   <header class="topbar">
     <a class="brand" href="./" aria-label="知行实验室首页"><img src="./favicon.svg" alt=""><span>知行实验室<small>IDEA INTO INTERACTION</small></span></a>
     <nav class="topnav" aria-label="主导航"><button class="nav-current" id="nav-workbench">实验工作台</button><button id="open-guide">项目说明 ↗</button></nav>
-    <div class="header-actions"><span class="mode-indicator" id="mode-indicator"><i></i>示例模式</span><button class="btn btn-subtle" id="open-settings">连接模型 <span>⌘</span></button></div>
+    <div class="header-actions"><span class="mode-indicator" id="mode-indicator"><i></i>本地生成器</span><button class="btn btn-subtle" id="open-settings">连接 AI（可选） <span>⌘</span></button></div>
   </header>
 
   <main class="shell">
     <section class="intro" aria-labelledby="page-title">
-      <div><div class="eyebrow"><span class="tiny-line"></span>AI-ASSISTED LEARNING DESIGN</div><h1 id="page-title">让一个教学想法，<br class="mobile-break">成为一次<span>动手探索。</span></h1><p>从教学目标到交互实验，每一步都有依据，每一份产出都能继续使用。</p></div>
+      <div><div class="eyebrow"><span class="tiny-line"></span>AI-ASSISTED LEARNING DESIGN</div><h1 id="page-title">写一句需求，<br class="mobile-break">得到一个<span>可运行的交互实验。</span></h1><p>你只需要描述“给谁学、想理解什么、希望怎么操作”；系统会生成方案、交互规则、预览网页和下载文件。</p></div>
       <div class="intro-visual" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="orbit-node node-a"></span><span class="orbit-node node-b"></span><span class="orbit-node node-c"></span><div class="idea-core">✳</div><span class="mini-tag tag-input">教学目标</span><span class="mini-tag tag-output">交互实验 ↗</span></div>
     </section>
 
@@ -28,7 +28,7 @@
       <aside class="workflow-panel">
         <div class="panel-kicker">你的生产流程 <span>01 — 06</span></div>
         <nav id="step-nav" class="step-nav" aria-label="生产步骤"></nav>
-        <div class="workflow-foot"><span class="foot-symbol">↳</span><strong>先确认，再向前。</strong><p>上游内容发生变化时，下游文档会重新生成。</p><button id="load-example" class="text-button">载入完整示例 <span>↗</span></button></div>
+        <div class="workflow-foot"><span class="foot-symbol">↳</span><strong>第一次使用？</strong><p>先在第一步写一句需求，不需要 API。生成后再逐步查看方案、预览和下载文件。</p><button id="load-example" class="text-button">直接看一个完整结果 <span>↗</span></button></div>
       </aside>
 
       <div class="workspace-main">
@@ -49,17 +49,17 @@
 
   <dialog id="settings-dialog" class="dialog">
     <form id="settings-form"><div class="dialog-heading"><div><div class="eyebrow">MODEL CONNECTION</div><h2>连接你的模型服务</h2></div><button type="button" class="icon-close" data-close="settings-dialog" aria-label="关闭">×</button></div>
-      <p>连接后，课程分析与交互设计会真实请求你配置的服务。服务端管理模型 API 密钥，网页仅保存服务地址。</p>
+      <p>这是可选增强。即使不连接 API，也可以用本地生成器根据新需求生成不同项目。连接后，模型会帮助理解更复杂的需求；服务端管理模型 API 密钥，网页只保存服务地址。</p>
       <label for="service-url">模型代理地址</label><input id="service-url" type="url" placeholder="http://127.0.0.1:4173" autocomplete="off"><small>填写你部署的本项目 Node 代理根地址；本机默认是 http://127.0.0.1:4173。GitHub Pages 本身只提供静态页面。</small>
       <label for="service-token">服务访问口令（如有）</label><input id="service-token" type="password" placeholder="仅在当前页面内存中使用" autocomplete="off"><small>这是你为代理服务设置的访问口令，不是模型供应商的 API Key。</small>
       <div class="connection-message" id="connection-message" role="status"></div>
-      <div class="dialog-actions"><button type="button" class="btn btn-outline" id="use-template">使用示例模式</button><button type="submit" class="btn btn-primary">验证并连接</button></div>
+      <div class="dialog-actions"><button type="button" class="btn btn-outline" id="use-template">继续用本地生成器</button><button type="submit" class="btn btn-primary">验证并连接</button></div>
     </form>
   </dialog>
 
   <dialog id="guide-dialog" class="dialog guide-dialog"><div class="dialog-heading"><div><div class="eyebrow">ABOUT THE PROJECT</div><h2>从想法到实验的六步</h2></div><button class="icon-close" data-close="guide-dialog" aria-label="关闭">×</button></div>
-    <p>这个工作台把教学设计、交互规格和交付文件串在一起。它是基于通用教研流程重新实现的公开演示，示例文案、图形和代码均在本项目中独立编写。</p>
-    <div class="guide-grid"><article><b>01 · 明确输入</b><p>填写对象、目标和需要比较的条件，界定实验的教学边界。</p></article><article><b>02 · 确认方案</b><p>检查探究问题、观察方式和结论；批准后再细化设计。</p></article><article><b>03 · 固化规格</b><p>将输入、反馈、完成条件写成状态机，避免按钮和语音相互冲突。</p></article><article><b>04 · 提取资源</b><p>从规格直接提取图片、动画和语音需求，文件名保持一致。</p></article><article><b>05 · 保存复现要求</b><p>导出带配置、技术约束和验收步骤的提示词。</p></article><article><b>06 · 体验并交付</b><p>使用同一份配置运行预览，下载可独立打开的 HTML 和文档。</p></article></div>
+    <p>这个工作台把一条教学需求变成一个可检查、可运行、可下载的交互项目。你不需要先懂提示词工程，也不需要先连接 API。</p>
+    <div class="guide-grid"><article><b>01 · 输入需求</b><p>写一句“给谁学、学什么、希望学生做什么”。</p></article><article><b>02 · 生成项目</b><p>系统推断交互类型，生成条件、反馈和结论。</p></article><article><b>03 · 审核方案</b><p>检查探究问题、观察条件和教学结论是否合理。</p></article><article><b>04 · 查看规则</b><p>查看开始、选择、反馈、完成和重置的状态机。</p></article><article><b>05 · 运行预览</b><p>在网页里点击开始，逐项观察反馈并完成实验。</p></article><article><b>06 · 导出交付</b><p>下载项目 JSON、Markdown 文档、Prompt 和独立 HTML。</p></article></div>
     <div class="guide-mode"><strong>本地生成器与模型模式</strong><p>本地生成器会根据新的自然语言需求推断交互类型，并生成项目 JSON、文档和网页；模型模式通过代理让模型补充需求理解。两种模式都经过结构校验，实验为概念示意，正式课程仍需学科审核和用户测试。</p></div>
     <button class="btn btn-primary" data-close="guide-dialog">开始探索 →</button>
   </dialog>
