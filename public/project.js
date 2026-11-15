@@ -27,6 +27,7 @@ export function inferSceneVariant(text = '', type = '') {
   if (/碳循环|碳原子|碳元素/.test(s)) return 'carbon-cycle';
   if (/水循环|蒸发|凝结|降水/.test(s)) return 'water-cycle';
   if (/光合作用|叶绿体|二氧化碳.*氧气/.test(s)) return 'photosynthesis';
+  if (/潮汐|湿地|涨潮|退潮/.test(s)) return 'tide-wetland';
   if (type === 'classification') return 'classification';
   if (type === 'particle-simulation') return 'particles';
   return type || 'generic';
@@ -159,6 +160,28 @@ export function interactionPlanFor(request, type, candidate = {}) {
       feedbackRule: '每次操作只改变一个输入通道，并在叶片旁显示该输入对合成过程的作用。',
       completionRule: '三个输入条件都观察后，显示“光合作用需要光、水和二氧化碳”的证据链。',
     },
+    'tide-wetland': {
+      sceneTitle: '潮汐闸门观察站',
+      rationale: '把潮位标记拖过涨潮和退潮样方，学生能直接比较水线位置与湿地生物活动的变化。',
+      metaphor: '海岸闸门、潮位线和湿地样方组成的观察站',
+      userActions: [
+        { label: '抬高潮位', action: '把潮位标记拖到涨潮样方', effect: '水线进入湿地，显示耐水生物活动增加。' },
+        { label: '观察退潮', action: '再把潮位标记拖到退潮样方', effect: '水线后退，显示裸露泥滩和觅食活动。' },
+        { label: '比较影响', action: '查看两次样方记录', effect: '把潮位变化与生物活动证据连起来。' },
+      ],
+      visualElements: ['海岸闸门', '涨潮样方', '退潮泥滩', '潮位标记和生物观察卡'],
+      feedbackRule: '每次放置都更新潮位线，并指出当前样方中可观察的生物活动。',
+      completionRule: '涨潮和退潮样方都观察后，显示潮汐影响湿地生物的比较结论。',
+    },
+    'tide-wetland': {
+      type: 'drag-route', instruction: '把潮位标记依次拖到涨潮样方和退潮样方，比较水线与生物活动。',
+      draggableElements: [{ id: 'tide_marker', label: '潮位标记', description: '表示海水当前到达的位置', color: '#6caaea' }],
+      dropZones: [
+        { id: 'high_tide', label: '涨潮样方', description: '水线进入湿地，观察耐水生物', accepts: ['tide_marker'], successFeedback: '涨潮水线进入湿地，记录水边生物活动。', errorFeedback: '先把潮位标记放到涨潮样方。' },
+        { id: 'low_tide', label: '退潮泥滩', description: '水线后退，观察裸露泥滩', accepts: ['tide_marker'], successFeedback: '退潮露出泥滩，可以比较觅食和躲藏活动。', errorFeedback: '完成涨潮观察后，再拖到退潮泥滩。' },
+      ],
+      successFeedback: '涨潮与退潮都观察完成，可以解释潮汐如何影响湿地生物。', errorFeedback: '根据潮位先后关系重新尝试。',
+    },
     classification: {
       sceneTitle: '证据分类工作台',
       rationale: '先呈现对象的可观察证据，再让学生依据证据归类，避免只凭记忆点击答案。',
@@ -198,8 +221,57 @@ export function interactionPlanFor(request, type, candidate = {}) {
     feedbackRule: '每次操作聚焦一个条件，反馈只描述与主题有关的可观察变化。',
     completionRule: '所有条件至少观察一次后，显示基于观察记录的主题归纳。',
   };
+  const manipulationDefaults = {
+    'carbon-cycle': {
+      type: 'drag-route', instruction: '把碳原子拖到它下一步会到达的碳库，完成一条从空气出发再回到空气的路线。',
+      draggableElements: [
+        { id: 'carbon_atom', label: '碳原子', description: '正在旅行的碳原子', color: '#4eae8e' },
+      ],
+      dropZones: [
+        { id: 'plant', label: '植物', description: '光合作用固定碳', accepts: ['carbon_atom'], successFeedback: '碳被植物固定在有机物中。', errorFeedback: '先把碳原子放入植物，观察它如何进入食物链。' },
+        { id: 'animal', label: '动物', description: '取食让碳继续传递', accepts: ['carbon_atom'], successFeedback: '碳沿食物链进入动物体内。', errorFeedback: '这一站需要先经过植物，碳才能沿食物链传递。' },
+        { id: 'soil', label: '土壤', description: '分解者把碳归还土壤', accepts: ['carbon_atom'], successFeedback: '遗体和排遗物被分解，碳回到土壤。', errorFeedback: '先观察生物遗体如何进入分解环节。' },
+        { id: 'air', label: '大气', description: '呼吸和燃烧释放二氧化碳', accepts: ['carbon_atom'], successFeedback: '碳以二氧化碳回到大气，循环重新开始。', errorFeedback: '只有呼吸或燃烧释放的碳才回到大气。' },
+      ], successFeedback: '路线完成：碳在生物圈、土壤和大气之间循环。', errorFeedback: '先观察这个元素与目标区域的关系，再尝试放置。',
+    },
+    'water-cycle': {
+      type: 'drag-route', instruction: '拖动水滴沿着地表水 → 水蒸气 → 云滴 → 降水的路线移动。',
+      draggableElements: [{ id: 'water_drop', label: '一滴水', description: '同一滴水会改变状态', color: '#6caaea' }],
+      dropZones: [
+        { id: 'surface', label: '地表水', description: '水受热前的起点', accepts: ['water_drop'], successFeedback: '水滴从地表获得能量，准备蒸发。', errorFeedback: '水滴要从地表水开始旅行。' },
+        { id: 'vapor', label: '水蒸气', description: '蒸发后的气态水', accepts: ['water_drop'], successFeedback: '水滴变成水蒸气并上升。', errorFeedback: '先让地表水蒸发，才能进入大气。' },
+        { id: 'cloud', label: '云滴', description: '冷却后凝结成小水滴', accepts: ['water_drop'], successFeedback: '水蒸气遇冷凝结成云滴。', errorFeedback: '云滴来自冷却后的水蒸气。' },
+        { id: 'rain', label: '降水', description: '水滴变大后回到地面', accepts: ['water_drop'], successFeedback: '降水让水回到地面，循环闭合。', errorFeedback: '云滴聚集变大后才会形成降水。' },
+      ], successFeedback: '水滴完成一次循环：蒸发、凝结、降水首尾相连。', errorFeedback: '这一步不符合水的状态变化顺序。',
+    },
+    photosynthesis: {
+      type: 'drag-into-system', instruction: '把光能、二氧化碳和水拖进叶片，观察原料如何转化并释放氧气。',
+      draggableElements: [
+        { id: 'light', label: '光能', description: '驱动合成的能量', color: '#e8b34d' },
+        { id: 'co2', label: '二氧化碳', description: '来自空气的碳原料', color: '#8d9ee4' },
+        { id: 'water', label: '水', description: '由根部吸收的原料', color: '#6caaea' },
+      ],
+      dropZones: [{ id: 'leaf', label: '叶片合成区', description: '叶绿体在这里利用原料', accepts: ['light', 'co2', 'water'], successFeedback: '输入接入叶片，系统显示有机物合成和氧气释放。', errorFeedback: '把光能、二氧化碳和水都送入叶片合成区。' }],
+      successFeedback: '三种输入齐备：叶片完成光合作用并释放氧气。', errorFeedback: '这个元素不是当前叶片合成区需要的输入。',
+    },
+    classification: {
+      type: 'drag-sort', instruction: '拖动证据卡到最符合它特征的类别槽；放错后会提示你回到证据。',
+      draggableElements: [
+        { id: 'evidence_a', label: '对象证据 A', description: '带有需要观察的结构特征', color: '#7c91d7' },
+        { id: 'evidence_b', label: '对象证据 B', description: '带有另一组可观察特征', color: '#d6a261' },
+      ],
+      dropZones: [{ id: 'category_a', label: '类别 A', description: '符合第一组证据', accepts: ['evidence_a'], successFeedback: '证据与类别 A 的特征匹配。', errorFeedback: '回到证据卡，比较它真正具备的特征。' }, { id: 'category_b', label: '类别 B', description: '符合第二组证据', accepts: ['evidence_b'], successFeedback: '证据与类别 B 的特征匹配。', errorFeedback: '这个对象的证据更符合另一个类别。' }],
+      successFeedback: '分类完成：每个判断都能用观察证据解释。', errorFeedback: '先看证据，再决定它应该进入哪个类别。',
+    },
+  }[variant] || {
+    type: 'drag-sort', instruction: '先拖动主题对象，再把它放到最符合观察证据的区域；每次放置都会得到解释。',
+    draggableElements: [{ id: 'object_a', label: '主题对象 A', description: '需要观察的主题对象', color: '#4eae8e' }, { id: 'object_b', label: '主题对象 B', description: '用于比较的主题对象', color: '#7c91d7' }],
+    dropZones: [{ id: 'observe_a', label: '观察区 A', description: '记录第一种主题现象', accepts: ['object_a'], successFeedback: '对象 A 已进入对应观察区。', errorFeedback: '根据对象的观察证据选择区域。' }, { id: 'observe_b', label: '观察区 B', description: '记录第二种主题现象', accepts: ['object_b'], successFeedback: '对象 B 已进入对应观察区。', errorFeedback: '比较对象特征后再放置。' }],
+    successFeedback: '主题对象都已放置，可以根据观察记录形成解释。', errorFeedback: '先读清楚对象和区域的关系，再拖动。',
+  };
   const raw = candidate.interactionPlan || candidate.interaction || {};
   const rawDesign = candidate.interactionDesign || candidate.design || candidate.interaction || {};
+  const rawManipulation = rawDesign.directManipulation || rawDesign.manipulation || {};
   const allowedModes = new Set(['compare', 'process', 'sequence', 'classification', 'parameter', 'cause-effect']);
   const number = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
   const min = number(raw.min, defaults.min ?? 0), max = number(raw.max, defaults.max ?? 100);
@@ -208,8 +280,12 @@ export function interactionPlanFor(request, type, candidate = {}) {
     return { label: clean(item?.label || `操作${index + 1}`, 40), action: clean(item?.action || item?.instruction || '', 180), effect: clean(item?.effect || item?.feedback || '', 220) };
   }).filter(item => item.action && item.effect).slice(0, 6) : [];
   const visuals = Array.isArray(rawDesign.visualElements) ? rawDesign.visualElements.map(item => clean(typeof item === 'string' ? item : item?.label || item?.description, 120)).filter(Boolean).slice(0, 8) : [];
+  const elements = Array.isArray(rawManipulation.draggableElements || rawManipulation.elements) ? (rawManipulation.draggableElements || rawManipulation.elements).map((item, index) => ({ id: clean(item?.id || `element_${index + 1}`, 40).replace(/\s+/g, '_'), label: clean(item?.label || item?.name || `元素${index + 1}`, 50), description: clean(item?.description || item?.meaning || '需要观察的主题元素。', 140), color: clean(item?.color || colors[index % colors.length], 20) })).filter(item => item.label).slice(0, 8) : [];
+  const zones = Array.isArray(rawManipulation.dropZones || rawManipulation.zones) ? (rawManipulation.dropZones || rawManipulation.zones).map((item, index) => ({ id: clean(item?.id || `zone_${index + 1}`, 40).replace(/\s+/g, '_'), label: clean(item?.label || item?.name || `区域${index + 1}`, 50), description: clean(item?.description || '放置后查看这里代表的主题变化。', 140), accepts: Array.isArray(item?.accepts) ? item.accepts.map(value => clean(value, 40)).filter(Boolean).slice(0, 8) : ['*'], successFeedback: clean(item?.successFeedback || item?.feedback || rawManipulation.successFeedback || '放置正确，观察这个主题变化。', 220), errorFeedback: clean(item?.errorFeedback || rawManipulation.errorFeedback || '这个元素与当前区域不匹配。', 220) })).filter(item => item.label).slice(0, 8) : [];
+  const manipulationType = new Set(['drag-route', 'drag-sort', 'drag-into-system', 'sequence-drag', 'map-route']).has(rawManipulation.type) ? rawManipulation.type : manipulationDefaults.type;
+  const manipulation = { type: manipulationType, instruction: cleanMultiline(rawManipulation.instruction || manipulationDefaults.instruction, 400), draggableElements: elements.length >= 1 ? elements : manipulationDefaults.draggableElements, dropZones: zones.length >= 1 ? zones : manipulationDefaults.dropZones, successFeedback: cleanMultiline(rawManipulation.successFeedback || manipulationDefaults.successFeedback, 300), errorFeedback: cleanMultiline(rawManipulation.errorFeedback || manipulationDefaults.errorFeedback, 300) };
   return {
-    mode: allowedModes.has(raw.mode) ? raw.mode : defaults.mode,
+    mode: rawManipulation.type || candidate.__forceManipulation || raw.mode === 'manipulation' ? 'manipulation' : allowedModes.has(raw.mode) ? raw.mode : defaults.mode,
     label: clean(raw.label || defaults.label, 60), prompt: clean(raw.prompt || defaults.prompt, 400),
     controlLabel: clean(raw.controlLabel || defaults.controlLabel, 40), dimension: clean(raw.dimension || defaults.dimension, 40),
     min, max: Math.max(min + 1, max), step: Math.max(1, number(raw.step, defaults.step ?? 10)),
@@ -220,6 +296,7 @@ export function interactionPlanFor(request, type, candidate = {}) {
     visualElements: visuals.length >= 1 ? visuals : sceneDefaults.visualElements,
     feedbackRule: cleanMultiline(rawDesign.feedbackRule || sceneDefaults.feedbackRule, 500),
     completionRule: cleanMultiline(rawDesign.completionRule || sceneDefaults.completionRule, 500),
+    manipulation,
   };
 }
 
@@ -237,15 +314,17 @@ export function generateProject(rawRequest, model = null) {
     request, plan: { title, subject: request.subject, audience: clean(candidate.audience || request.audience, 80), goal, question, conclusion, interactionType: type, interactionLabel: interactionCatalog[type].label },
     spec: { states: statesFor(type), components: componentsFor(type, conditions), duration: 900, completionRule: '所有条件至少观察一次后显示结论', resetRule: '重置取消计时器与朗读并清空进度' },
     scene: { kind: type, variant: candidate.scene?.variant || inferSceneVariant(request.text, type), title, palette: colors.slice(0, conditions.length), instruction: clean(candidate.intro || '点击开始，再逐项选择一个条件，观察反馈并记录发现。', 500) },
-    interaction: interactionPlanFor(request, type, candidate),
+    interaction: interactionPlanFor(request, type, {...candidate, __forceManipulation: !model}),
     conditions: conditions.map((c, i) => ({ id: `condition_${i + 1}`, label: c[0], observation: c[1], color: colors[i % colors.length] })),
     assets: [], acceptance: [], generatedAt: new Date().toISOString(),
   };
+  if (project.interaction.mode === 'manipulation') { project.spec.states = ['initial', 'dragging', 'feedback', 'completed']; project.spec.components = [{ id: 'manipulation', type: 'manipulation-board', label: '主题拖拽操控台' }, ...project.spec.components]; }
   project.assets = [
     { file: 'scene.svg', kind: '场景', status: '程序生成', purpose: `${title}的${interactionCatalog[type].label}概念图` },
     ...project.conditions.flatMap(c => [{ file: `${c.id}.svg`, kind: '反馈画面', status: '程序生成', purpose: c.observation }, { file: `${c.id}.mp3`, kind: '语音', status: '可由浏览器朗读', purpose: c.observation }]),
   ];
   project.acceptance = ['打开页面必须先点击开始', '反馈期间所有条件按钮禁用', '已完成条件不能重复计数', '全部条件完成后才显示结论', '重置后旧任务不能修改新状态', '页面无外部框架、图片或 CDN 依赖'];
+  if (project.interaction.mode === 'manipulation') project.acceptance = ['打开页面必须先点击开始', '拖拽元素只能放入符合 accepts 关系的主题区域', '放错时保留元素并给出主题修正提示', '路线型交互必须按主题顺序推进', '全部元素或路线完成后才显示结论', '重置后旧任务不能修改新状态', '页面无外部框架、图片或 CDN 依赖'];
   validateProject(project);
   return project;
 }
@@ -265,7 +344,8 @@ export function projectDocuments(project) {
   const interaction = project.interaction || {};
   const actionRows = (interaction.userActions || []).map((a, i) => `${i + 1}. **${a.label}**：${a.action} → ${a.effect}`).join('\n');
   const visualRows = (interaction.visualElements || []).map(item => `- ${item}`).join('\n');
-  const spec = `# ${p.title} · 交互执行规格\n\n## AI 生成的主题场景\n\n- 场景名称：${interaction.sceneTitle || "主题探索台"}\n- 设计理由：${interaction.rationale || "围绕本主题组织可观察的操作。"}\n- 场景隐喻：${interaction.metaphor || "观察与比较工作台"}\n\n### 用户动作\n\n${actionRows || '1. 选择主题条件并查看反馈。'}\n\n### 画面元素\n\n${visualRows || '- 主题对象主图'}\n\n- 反馈规则：${interaction.feedbackRule || "每次操作都显示与主题相关的观察反馈。"}\n- AI 生成的完成判断：${interaction.completionRule || project.spec.completionRule}\n\n## 实现骨架（系统内部）\n\n- 内部状态骨架：${interaction.label || "观察比较台"}；仅用于保证按钮、反馈、重置和完成状态安全，不是用户选择的模板。\n- 主要控件：${interaction.controlLabel || "观察条件"}\n- 引导语：${interaction.prompt || "选择不同条件，比较反馈后记录发现。"}\n- 观察维度：${interaction.dimension || "现象差异"}\n\n## 状态机\n\n\`${project.spec.states.join(' → ')}\`\n\n- 初始态：${project.scene.instruction}\n- 完成条件：${project.spec.completionRule}\n- 重置规则：${project.spec.resetRule}\n- 反馈时长：${project.spec.duration} ms；语音开启时等待动画和朗读都结束。\n\n## 组件\n\n${project.spec.components.map(c => `- ${c.type}：${c.label}`).join('\n')}\n\n## 验收规则\n\n${project.acceptance.map(a => `- [ ] ${a}`).join('\n')}\n`;
+  const manipulation = interaction.manipulation || {}, elementRows = (manipulation.draggableElements || []).map(item => `- ${item.id}：${item.label}（${item.description}）`).join('\n'), zoneRows = (manipulation.dropZones || []).map(item => `- ${item.id}：${item.label}；允许：${(item.accepts || []).join('、')}；放对：${item.successFeedback || ''}；放错：${item.errorFeedback || ''}`).join('\n');
+  const spec = `# ${p.title} · 交互执行规格\n\n## AI 生成的主题场景\n\n- 场景名称：${interaction.sceneTitle || "主题探索台"}\n- 设计理由：${interaction.rationale || "围绕本主题组织可观察的操作。"}\n- 场景隐喻：${interaction.metaphor || "观察与比较工作台"}\n\n### 用户动作\n\n${actionRows || '1. 选择主题条件并查看反馈。'}\n\n### 画面元素\n\n${visualRows || '- 主题对象主图'}\n\n### 可拖拽操控\n\n- 类型：${manipulation.type || 'drag-sort'}\n- 操作说明：${manipulation.instruction || '把元素拖到合适的主题区域。'}\n- 可拖元素：\n${elementRows || '- 主题对象：需要观察的元素'}\n- 放置区域：\n${zoneRows || '- 主题区域：根据证据放置元素'}\n- 全部放对后的反馈：${manipulation.successFeedback || '操作完成，查看主题归纳。'}\n\n- 反馈规则：${interaction.feedbackRule || "每次操作都显示与主题相关的观察反馈。"}\n- AI 生成的完成判断：${interaction.completionRule || project.spec.completionRule}\n\n## 实现骨架（系统内部）\n\n- 内部状态骨架：${interaction.label || "观察比较台"}；仅用于保证按钮、反馈、重置和完成状态安全，不是用户选择的模板。\n- 主要控件：${interaction.controlLabel || "观察条件"}\n- 引导语：${interaction.prompt || "选择不同条件，比较反馈后记录发现。"}\n- 观察维度：${interaction.dimension || "现象差异"}\n\n## 状态机\n\n\`${project.spec.states.join(' → ')}\`\n\n- 初始态：${project.scene.instruction}\n- 完成条件：${project.spec.completionRule}\n- 重置规则：${project.spec.resetRule}\n- 反馈时长：${project.spec.duration} ms；语音开启时等待动画和朗读都结束。\n\n## 组件\n\n${project.spec.components.map(c => `- ${c.type}：${c.label}`).join('\n')}\n\n## 验收规则\n\n${project.acceptance.map(a => `- [ ] ${a}`).join('\n')}\n`;
   const assets = `# ${p.title} · 资源清单\n\n| 文件 | 类型 | 目的 | 状态 |\n| --- | --- | --- | --- |\n${project.assets.map(a => `| ${a.file} | ${a.kind} | ${a.purpose.replaceAll('|', '／')} | ${a.status} |`).join('\n')}\n\n程序图形是概念示意，正式课程仍需美术、配音和学科审核。\n`;
   const prompt = `# ${p.title} · 复现提示词\n\n你是教育交互前端开发者。请根据下方项目 JSON 生成可离线打开的 HTML。不要添加未在配置中声明的操作，不生成虚构测量数据，不依赖 CDN。\n\n\`\`\`json\n${JSON.stringify(project, null, 2)}\n\`\`\`\n\n必须实现：开始入口、${project.spec.states.join(' → ')} 状态转移、反馈期间锁定、完成后结论、重置取消旧任务、键盘可操作和移动端布局。完成后逐条执行验收清单。\n`;
   return { plan, spec, assets, prompt };
@@ -273,18 +353,21 @@ export function projectDocuments(project) {
 
 export const projectMarkup = `<main class="generated-lab"><header><div><span class="eyebrow">GENERATED LEARNING EXPERIENCE</span><h1 id="title"></h1><p id="meta"></p></div><button id="reset" class="quiet">↺ 重新探索</button></header><p id="question" class="question"></p><div class="generated-grid"><section class="visual-card"><div id="visual"></div><span class="visual-note">程序生成概念示意 · 非测量数据</span></section><section class="control-card"><div class="progress-line"><strong id="progress"></strong><button id="voice" class="quiet" aria-pressed="false">语音：关闭</button></div><div id="interaction-hint" class="interaction-hint"></div><div id="parameter"></div><div id="workspace-extra"></div><div id="conditions"></div><button id="start" class="primary">开始探索 →</button><div id="feedback" class="feedback" role="status" aria-live="polite"></div></section></div><section id="conclusion" class="conclusion" hidden></section></main>`;
 
-export const projectStyles = `*{box-sizing:border-box}body{margin:0;background:#f5f8fc;color:#26354b;font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;font-size:14px}.generated-lab{max-width:1080px;margin:auto;padding:28px}.generated-lab header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.eyebrow{font-size:9px;letter-spacing:2px;color:#7d8fa8}.generated-lab h1{font-size:24px;margin:8px 0 4px}.generated-lab #meta,.question{color:#8190a5;font-size:11px;line-height:1.7;margin:0}.question{margin:15px 0 20px;font-size:13px}.generated-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:20px}.visual-card,.control-card{background:#fff;border:1px solid #dfe8f1;border-radius:16px;box-shadow:0 8px 28px #304e7510}.visual-card{position:relative;min-height:330px;display:flex;align-items:center;overflow:hidden;background:linear-gradient(150deg,#eef8f5,#f8fbff)}#visual{width:100%}svg{display:block;width:100%;height:auto}.visual-note{position:absolute;left:14px;bottom:12px;color:#81958f;font-size:9px}.control-card{padding:20px}.progress-line{display:flex;justify-content:space-between;align-items:center;color:#7e8ca1;font-size:11px;margin-bottom:13px}.quiet{border:0;background:none;color:#7c899d;font-size:11px;padding:6px 0;cursor:pointer}.condition{width:100%;border:1px solid #dde5ee;background:#fff;border-radius:9px;padding:12px 14px;margin:0 0 9px;text-align:left;display:flex;justify-content:space-between;gap:10px;color:#35455d}.condition:hover:not(:disabled){border-color:#9eaff4;background:#f8f9ff}.condition:disabled{opacity:.5}.condition.done{background:#eff8f2;border-color:#cde8d7;color:#438061;opacity:1}.condition.active{background:#eef2ff;border-color:#9eaff4;opacity:1}.primary{width:100%;border:0;border-radius:8px;background:#344de8;color:white;padding:12px;font-size:12px;cursor:pointer;margin-top:4px}.feedback{min-height:65px;padding-top:13px;color:#65748a;font-size:11px;line-height:1.85}.conclusion{margin-top:18px;border:1px solid #dce5fc;border-radius:10px;background:#edf2ff;color:#506088;padding:16px;font-size:12px;line-height:1.9}[hidden]{display:none!important}.range-wrap{padding:10px 0 14px;color:#718096;font-size:10px}.interaction-hint{margin:0 0 12px;padding:10px 12px;border:1px solid #e3e9fa;border-radius:9px;background:#f7f9ff;color:#66779b;font-size:10px;line-height:1.7}.rich-control{padding:11px 12px;border:1px solid #e6ebf5;border-radius:10px;background:#fbfcff}.rich-control small{display:block;margin-top:6px;color:#9aa7ba}.result-meter{height:6px;margin-top:9px;border-radius:10px;background:#e9eef8;overflow:hidden}.result-meter i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#7c91d7,#4eae8e);transition:width .2s}.design-card{display:grid;gap:6px;margin:0 0 13px;padding:13px 14px;border:1px solid #dbe9e4;border-radius:11px;background:linear-gradient(135deg,#f4fbf7,#f7f9ff);color:#60728a;font-size:10px;line-height:1.75}.design-card strong{color:#3e806c;font-size:12px}.design-card b{color:#536a89;font-weight:600}.design-card ul{margin:2px 0 0;padding-left:17px}.design-card li{margin:2px 0}.design-card small{color:#8998aa}.step-roadmap,.evidence-card,.compare-board{display:grid;gap:7px;margin:0 0 13px;padding:12px;border:1px solid #e6ebf5;border-radius:10px;background:#fbfcff;color:#6d7c92;font-size:10px;line-height:1.7}.step-roadmap>strong,.evidence-card>strong,.compare-board>strong{color:#55678d;font-size:11px}.step-roadmap>span,.compare-board>span{color:#96a2b5}.step-roadmap>div{display:flex;gap:5px;flex-wrap:wrap}.step-roadmap b{display:flex;align-items:center;gap:4px;padding:5px 7px;border-radius:7px;background:#f0f3f8;color:#97a2b2;font-weight:500}.step-roadmap b.current{background:#eef2ff;color:#657bd0}.step-roadmap b.done{background:#eef8f2;color:#4f9878}.step-roadmap i{font-style:normal;font-size:9px}.evidence-card p{margin:0;color:#5e6f87}.evidence-card small{color:#9aa7b8}.compare-board>div{display:grid;grid-template-columns:1fr 1fr;gap:7px}.compare-board article{min-height:76px;padding:8px;border:1px dashed #d9e1ed;border-radius:8px;background:#fff}.compare-board article small,.compare-board article b{display:block}.compare-board article small{color:#a0aaba;font-size:9px}.compare-board article b{margin-top:3px;color:#586b89;font-size:10px}.compare-board article p{margin:5px 0 0;color:#8c99ab;font-size:9px;line-height:1.6}@media(max-width:650px){.compare-board>div{grid-template-columns:1fr}}.range-wrap input{width:100%}.range-value{float:right;color:#536fc4}.flow-arrow{stroke:#7a91e2;stroke-width:3;stroke-linecap:round;stroke-dasharray:7 7;animation:dash 1.8s linear infinite}.particle-dot{animation:drift var(--speed,2.8s) ease-in-out infinite alternate}.pulse-node{animation:pulse 1.1s ease-in-out infinite alternate}@keyframes dash{to{stroke-dashoffset:-28}}@keyframes drift{to{transform:translate(18px,-10px)}}@keyframes pulse{to{opacity:.45}}@media(max-width:650px){.generated-lab{padding:18px}.generated-grid{grid-template-columns:1fr;gap:14px}.visual-card{min-height:230px}.generated-lab h1{font-size:19px}.control-card{padding:16px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}}`;
+export const projectStyles = `*{box-sizing:border-box}body{margin:0;background:#f5f8fc;color:#26354b;font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;font-size:14px}.generated-lab{max-width:1080px;margin:auto;padding:28px}.generated-lab header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.eyebrow{font-size:9px;letter-spacing:2px;color:#7d8fa8}.generated-lab h1{font-size:24px;margin:8px 0 4px}.generated-lab #meta,.question{color:#8190a5;font-size:11px;line-height:1.7;margin:0}.question{margin:15px 0 20px;font-size:13px}.generated-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:20px}.visual-card,.control-card{background:#fff;border:1px solid #dfe8f1;border-radius:16px;box-shadow:0 8px 28px #304e7510}.visual-card{position:relative;min-height:330px;display:flex;align-items:center;overflow:hidden;background:linear-gradient(150deg,#eef8f5,#f8fbff)}#visual{width:100%}svg{display:block;width:100%;height:auto}.visual-note{position:absolute;left:14px;bottom:12px;color:#81958f;font-size:9px}.control-card{padding:20px}.progress-line{display:flex;justify-content:space-between;align-items:center;color:#7e8ca1;font-size:11px;margin-bottom:13px}.quiet{border:0;background:none;color:#7c899d;font-size:11px;padding:6px 0;cursor:pointer}.condition{width:100%;border:1px solid #dde5ee;background:#fff;border-radius:9px;padding:12px 14px;margin:0 0 9px;text-align:left;display:flex;justify-content:space-between;gap:10px;color:#35455d}.condition:hover:not(:disabled){border-color:#9eaff4;background:#f8f9ff}.condition:disabled{opacity:.5}.condition.done{background:#eff8f2;border-color:#cde8d7;color:#438061;opacity:1}.condition.active{background:#eef2ff;border-color:#9eaff4;opacity:1}.primary{width:100%;border:0;border-radius:8px;background:#344de8;color:white;padding:12px;font-size:12px;cursor:pointer;margin-top:4px}.feedback{min-height:65px;padding-top:13px;color:#65748a;font-size:11px;line-height:1.85}.conclusion{margin-top:18px;border:1px solid #dce5fc;border-radius:10px;background:#edf2ff;color:#506088;padding:16px;font-size:12px;line-height:1.9}[hidden]{display:none!important}.range-wrap{padding:10px 0 14px;color:#718096;font-size:10px}.interaction-hint{margin:0 0 12px;padding:10px 12px;border:1px solid #e3e9fa;border-radius:9px;background:#f7f9ff;color:#66779b;font-size:10px;line-height:1.7}.rich-control{padding:11px 12px;border:1px solid #e6ebf5;border-radius:10px;background:#fbfcff}.rich-control small{display:block;margin-top:6px;color:#9aa7ba}.result-meter{height:6px;margin-top:9px;border-radius:10px;background:#e9eef8;overflow:hidden}.result-meter i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#7c91d7,#4eae8e);transition:width .2s}.design-card{display:grid;gap:6px;margin:0 0 13px;padding:13px 14px;border:1px solid #dbe9e4;border-radius:11px;background:linear-gradient(135deg,#f4fbf7,#f7f9ff);color:#60728a;font-size:10px;line-height:1.75}.design-card strong{color:#3e806c;font-size:12px}.design-card b{color:#536a89;font-weight:600}.design-card ul{margin:2px 0 0;padding-left:17px}.design-card li{margin:2px 0}.design-card small{color:#8998aa}.step-roadmap,.evidence-card,.compare-board{display:grid;gap:7px;margin:0 0 13px;padding:12px;border:1px solid #e6ebf5;border-radius:10px;background:#fbfcff;color:#6d7c92;font-size:10px;line-height:1.7}.step-roadmap>strong,.evidence-card>strong,.compare-board>strong{color:#55678d;font-size:11px}.step-roadmap>span,.compare-board>span{color:#96a2b5}.step-roadmap>div{display:flex;gap:5px;flex-wrap:wrap}.step-roadmap b{display:flex;align-items:center;gap:4px;padding:5px 7px;border-radius:7px;background:#f0f3f8;color:#97a2b2;font-weight:500}.step-roadmap b.current{background:#eef2ff;color:#657bd0}.step-roadmap b.done{background:#eef8f2;color:#4f9878}.step-roadmap i{font-style:normal;font-size:9px}.evidence-card p{margin:0;color:#5e6f87}.evidence-card small{color:#9aa7b8}.compare-board>div{display:grid;grid-template-columns:1fr 1fr;gap:7px}.compare-board article{min-height:76px;padding:8px;border:1px dashed #d9e1ed;border-radius:8px;background:#fff}.compare-board article small,.compare-board article b{display:block}.compare-board article small{color:#a0aaba;font-size:9px}.compare-board article b{margin-top:3px;color:#586b89;font-size:10px}.compare-board article p{margin:5px 0 0;color:#8c99ab;font-size:9px;line-height:1.6}@media(max-width:650px){.compare-board>div{grid-template-columns:1fr}}.range-wrap input{width:100%}.range-value{float:right;color:#536fc4}.flow-arrow{stroke:#7a91e2;stroke-width:3;stroke-linecap:round;stroke-dasharray:7 7;animation:dash 1.8s linear infinite}.particle-dot{animation:drift var(--speed,2.8s) ease-in-out infinite alternate}.pulse-node{animation:pulse 1.1s ease-in-out infinite alternate}@keyframes dash{to{stroke-dashoffset:-28}}@keyframes drift{to{transform:translate(18px,-10px)}}@keyframes pulse{to{opacity:.45}}.manipulation-board{display:grid;gap:10px;margin:0 0 13px;padding:13px;border:1px solid #d7e5f2;border-radius:12px;background:linear-gradient(145deg,#f7fbff,#f5faf7);color:#60728a;font-size:10px;line-height:1.65}.manipulation-board>strong{color:#46618c;font-size:12px}.manipulation-board>p{margin:0;color:#71839b}.drag-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:9px}.drag-palette,.drop-zone-list{display:grid;gap:7px}.drag-palette{padding:8px;border:1px dashed #cbdced;border-radius:9px;background:#fff}.drag-item,.drop-zone{border:1px solid #d8e2ed;border-radius:8px;background:#fff;padding:9px;text-align:left;cursor:grab;touch-action:none}.drag-item{display:grid;gap:2px;box-shadow:0 2px 7px #466b8312}.drag-item:active{cursor:grabbing}.drag-item.selected,.drop-zone.over{border-color:#7c91d7;background:#eef3ff;box-shadow:0 0 0 2px #7c91d733}.drag-item.placed{opacity:.38;cursor:default}.drag-item b,.drop-zone b{display:block;color:#536b89;font-size:10px}.drag-item small,.drop-zone small{display:block;color:#94a2b4;font-size:9px;line-height:1.5}.drop-zone{min-height:58px;border-style:dashed}.drop-zone.filled{border-style:solid;background:#eff9f3;border-color:#b8ddc8}.drop-zone.error{animation:shake .25s linear;border-color:#d99a9a;background:#fff5f5}.drag-feedback{min-height:28px;padding:7px 9px;border-radius:7px;background:#fff;color:#71839a;font-size:10px}.drag-feedback.good{background:#edf9f2;color:#4f8c6e}.drag-feedback.bad{background:#fff3f3;color:#ad6b6b}.manipulation-board .drag-help{color:#8a98a9;font-size:9px}@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}@media(max-width:650px){.generated-lab{padding:18px}.generated-grid{grid-template-columns:1fr;gap:14px}.visual-card{min-height:230px}.generated-lab h1{font-size:19px}.control-card{padding:16px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}}`;
 
 export function projectRuntime(project) {
   const $ = id => document.getElementById(id), esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const interaction = project.interaction || { mode: project.plan.interactionType === 'particle-simulation' ? 'parameter' : project.plan.interactionType === 'cause-effect' ? 'cause-effect' : project.plan.interactionType === 'sequence-exploration' ? 'sequence' : project.plan.interactionType === 'classification' ? 'classification' : project.plan.interactionType === 'process-simulation' ? 'process' : 'compare', label: '观察比较台', prompt: '选择不同条件，比较反馈后记录发现。', controlLabel: '观察条件', dimension: '现象差异', min: 0, max: 100, step: 10 };
-  let state = 'initial', active = -1, parameterValue = interaction.min ?? 2, voice = false, epoch = 0; const done = new Set(), timers = new Set(), observations = [];
+  let state = 'initial', active = -1, parameterValue = interaction.min ?? 2, voice = false, epoch = 0, selectedDragId = ''; const done = new Set(), timers = new Set(), observations = [], placements = Object.create(null), visitedZones = new Set();
   const later = (fn, ms) => { const id = setTimeout(() => { timers.delete(id); fn(); }, ms); timers.add(id); return id; };
   const speak = text => new Promise(resolve => { if (!voice || !('speechSynthesis' in window)) return resolve(); window.speechSynthesis.cancel(); let finished = false; const finish = () => { if (finished) return; finished = true; clearTimeout(timeout); resolve(); }; const timeout = later(() => { window.speechSynthesis.cancel(); finish(); }, 18000); try { const u = new SpeechSynthesisUtterance(text); u.lang = 'zh-CN'; u.onend = finish; u.onerror = finish; window.speechSynthesis.speak(u); } catch { finish(); } });
   function draw() {
     const type = project.plan.interactionType, opts = project.conditions, palette = opts.map(o => o.color);
     let html = '';
-    if (project.scene.variant === 'carbon-cycle') {
+    if (interaction.mode === 'manipulation') {
+      const zones = interaction.manipulation?.dropZones || [], elements = interaction.manipulation?.draggableElements || [];
+      html = `<rect x="25" y="25" width="310" height="240" rx="24" fill="#ffffff" stroke="#cbdced" stroke-width="3"/><text x="180" y="55" text-anchor="middle" fill="#536b89" font-size="12">${esc(interaction.sceneTitle || '主题操控场')}</text>${zones.map((zone, i) => { const x = 62 + (i % 3) * 118, y = 92 + Math.floor(i / 3) * 78; const placed = placements[zone.id]; return `<g class="pulse-node"><rect x="${x}" y="${y}" width="94" height="52" rx="12" fill="${placed ? '#e7f6ed' : '#f4f7fb'}" stroke="${placed ? '#72b38e' : '#cbd9ea'}" stroke-width="2"/><text x="${x + 47}" y="${y + 22}" text-anchor="middle" fill="#5d708a" font-size="10">${esc(zone.label.slice(0, 9))}</text><text x="${x + 47}" y="${y + 38}" text-anchor="middle" fill="#91a0b1" font-size="8">${placed ? '已放置' : '等待元素'}</text></g>`; }).join('')}${elements.map((item, i) => `<circle cx="${50 + i * 42}" cy="245" r="10" fill="${item.color}" opacity="${placements[item.id] ? '.25' : '.9'}"/><text x="${50 + i * 42}" y="262" text-anchor="middle" fill="#71839a" font-size="8">${esc(item.label.slice(0, 6))}</text>`).join('')}`;
+    } else if (project.scene.variant === 'carbon-cycle') {
       const centerX = 180, centerY = 145, radius = 92;
       html = `<circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="none" stroke="#8da2e4" stroke-width="3" stroke-dasharray="8 7" class="flow-arrow"/><circle cx="${centerX}" cy="${centerY}" r="34" fill="#eef2ff" stroke="#8da2e4" stroke-width="2"/><text x="${centerX}" y="${centerY+5}" text-anchor="middle" fill="#52659c" font-size="12">碳循环</text>${opts.map((o, i) => { const angle = -Math.PI / 2 + i * Math.PI * 2 / opts.length; const x = centerX + Math.cos(angle) * radius; const y = centerY + Math.sin(angle) * radius; return `<g class="pulse-node"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="27" fill="${palette[i]}" opacity=".86"/><text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" fill="#ffffff" font-size="9">${esc(o.label.split('：')[0].slice(0, 6))}</text></g>`; }).join('')}`;
     } else if (project.scene.variant === 'water-cycle') {
@@ -302,13 +385,39 @@ export function projectRuntime(project) {
     }
     $('visual').innerHTML = `<svg viewBox="0 0 360 290" role="img" aria-label="${esc(project.plan.title)}的动态概念示意">${html}</svg>`;
   }
+  function renderManipulation() {
+    const design = interaction.manipulation || {}, elements = design.draggableElements || [], zones = design.dropZones || [], route = design.type === 'drag-route' || design.type === 'sequence-drag' || design.type === 'map-route';
+    const board = document.createElement('section'); board.className = 'manipulation-board';
+    const isPlaced = id => Object.values(placements).some(list => Array.isArray(list) && list.includes(id));
+    const zoneContents = zone => (placements[zone.id] || []).map(id => elements.find(item => item.id === id)?.label || id).join('、');
+    const progress = route ? visitedZones.size : elements.filter(item => isPlaced(item.id)).length;
+    board.innerHTML = `<strong>动手操作：${esc(design.type === 'drag-sort' ? '把元素放进正确区域' : design.type === 'drag-into-system' ? '把主题输入送入系统' : '沿主题路线拖动')}</strong><p>${esc(design.instruction || '拖动一个元素到合适的区域。')}</p><div class="drag-layout"><div><div class="drag-help">元素区 · ${route ? `路线进度 ${progress}/${zones.length}` : `已放置 ${progress}/${elements.length}`}</div><div class="drag-palette">${elements.map(item => `<button class="drag-item ${!route && isPlaced(item.id) ? 'placed' : ''} ${selectedDragId === item.id ? 'selected' : ''}" type="button" draggable="true" data-drag-id="${esc(item.id)}" aria-label="拖动${esc(item.label)}"><b>${esc(item.label)}</b><small>${esc(item.description)}</small></button>`).join('')}</div></div><div><div class="drag-help">主题区域 · 放进去看变化</div><div class="drop-zone-list">${zones.map(zone => `<button class="drop-zone ${visitedZones.has(zone.id) ? 'filled' : ''}" type="button" data-zone-id="${esc(zone.id)}"><b>${esc(zone.label)}</b><small>${esc(zone.description)}</small><small>${zoneContents(zone) || '把对应元素拖到这里'}</small></button>`).join('')}</div></div></div><div class="drag-help">可以直接拖动；如果使用触屏或键盘，先点击元素，再点击目标区域。</div><div class="drag-feedback" data-drag-feedback>${esc(design.instruction || '先看元素代表什么，再决定它应该去哪里。')}</div>`;
+    const feedback = board.querySelector('[data-drag-feedback]');
+    const announce = (text, good) => { feedback.textContent = text; feedback.className = `drag-feedback ${good ? 'good' : 'bad'}`; $('feedback').textContent = text; };
+    const tryPlace = (elementId, zoneId) => {
+      if (!['selecting', 'classifying', 'step', 'dragging'].includes(state)) return;
+      const element = elements.find(item => item.id === elementId), zone = zones.find(item => item.id === zoneId); if (!element || !zone) return;
+      const accepted = zone.accepts?.includes('*') || zone.accepts?.includes(element.id);
+      if (!accepted) { announce(zone.errorFeedback || design.errorFeedback || '这个元素与当前区域不匹配，请根据主题证据重新判断。', false); const target = board.querySelector(`[data-zone-id="${CSS.escape(zone.id)}"]`); target?.classList.add('error'); setTimeout(() => target?.classList.remove('error'), 280); return; }
+      if (route) { const next = zones[visitedZones.size]; if (next && next.id !== zone.id) { announce(`先完成“${next.label}”，再进入“${zone.label}”。`, false); return; } }
+      if (!route) Object.keys(placements).forEach(key => { placements[key] = (placements[key] || []).filter(id => id !== element.id); });
+      placements[zone.id] = route ? [element.id] : [...(placements[zone.id] || []), element.id]; visitedZones.add(zone.id); selectedDragId = ''; announce(zone.successFeedback || design.successFeedback || '放置正确，继续观察这个主题变化。', true); render();
+      const complete = route ? visitedZones.size >= zones.length : elements.every(item => isPlaced(item.id)) && zones.filter(zoneItem => zoneItem.required !== false).every(zoneItem => (placements[zoneItem.id] || []).length);
+      if (complete) { state = 'completed'; $('feedback').textContent = design.successFeedback || interaction.completionRule || '操作完成，查看主题归纳。'; render(); }
+    };
+    board.querySelectorAll('[data-drag-id]').forEach(item => { item.addEventListener('dragstart', event => { selectedDragId = item.dataset.dragId; event.dataTransfer?.setData('text/plain', selectedDragId); item.classList.add('selected'); }); item.addEventListener('dragend', () => item.classList.remove('selected')); item.addEventListener('click', () => { selectedDragId = item.dataset.dragId; render(); }); });
+    board.querySelectorAll('[data-zone-id]').forEach(zone => { zone.addEventListener('dragover', event => { event.preventDefault(); zone.classList.add('over'); }); zone.addEventListener('dragleave', () => zone.classList.remove('over')); zone.addEventListener('drop', event => { event.preventDefault(); zone.classList.remove('over'); tryPlace(event.dataTransfer?.getData('text/plain') || selectedDragId, zone.dataset.zoneId); }); zone.addEventListener('click', () => { if (selectedDragId) tryPlace(selectedDragId, zone.dataset.zoneId); }); });
+    return board;
+  }
   function renderExtra() {
     const extra = $('workspace-extra'); extra.replaceChildren();
+    if (interaction.mode === 'manipulation') extra.append(renderManipulation());
     const design = document.createElement('section'); design.className = 'design-card';
     const actions = Array.isArray(interaction.userActions) ? interaction.userActions : [];
     design.innerHTML = `<strong>${esc(interaction.sceneTitle || interaction.label || '主题探索台')}</strong><div><b>为什么这样设计：</b>${esc(interaction.rationale || '围绕本主题组织可观察的操作。')}</div><small>${esc(interaction.metaphor || '')}</small><div><b>你将这样操作：</b><ul>${actions.map(item => `<li><b>${esc(item.label)}：</b>${esc(item.action)} → ${esc(item.effect)}</li>`).join('')}</ul></div><div><b>反馈规则：</b>${esc(interaction.feedbackRule || '每次操作显示与主题有关的观察反馈。')}</div><div><b>完成后：</b>${esc(interaction.completionRule || project.spec.completionRule || '完成全部观察后显示主题归纳。')}</div>`;
     extra.append(design);
     const mode = interaction.mode;
+    if (mode === 'manipulation') return;
     if (mode === 'parameter' || mode === 'cause-effect') {
       const wrap = document.createElement('label'); wrap.className = 'range-wrap rich-control';
       const min = Number.isFinite(interaction.min) ? interaction.min : 0, max = Number.isFinite(interaction.max) ? interaction.max : 100, step = interaction.step || 10;
@@ -326,13 +435,14 @@ export function projectRuntime(project) {
     }
   }
   function render() {
-    $('progress').textContent = `已完成 ${done.size} / ${project.conditions.length}`; $('start').hidden = state !== 'initial'; $('conclusion').hidden = state !== 'completed'; $('conclusion').textContent = `探索结论 · ${project.plan.conclusion}`; $('interaction-hint').textContent = interaction.prompt || project.scene.instruction; renderExtra(); draw();
-    const canChoose = ['selecting', 'classifying', 'step'].includes(state); $('conditions').replaceChildren(...project.conditions.map((c, i) => { const b = document.createElement('button'); b.className = `condition${done.has(i) ? ' done' : ''}${active === i ? ' active' : ''}`; const sequenceLocked = interaction.mode === 'sequence' && i !== done.size; b.disabled = !canChoose || done.has(i) || sequenceLocked; b.innerHTML = `<span>${esc(c.label)}${sequenceLocked ? ' · 待解锁' : ''}</span><span>${done.has(i) ? '✓' : active === i ? '观察中…' : '↗'}</span>`; b.onclick = () => choose(i); return b; }));
+    const manipulation = interaction.mode === 'manipulation', manipulationZones = interaction.manipulation?.dropZones || [], manipulationRoute = ['drag-route', 'sequence-drag', 'map-route'].includes(interaction.manipulation?.type), progress = manipulation ? (manipulationRoute ? visitedZones.size : new Set(Object.values(placements).flat()).size) : done.size;
+    $('progress').textContent = `已完成 ${progress} / ${manipulation ? (manipulationRoute ? manipulationZones.length : interaction.manipulation.draggableElements.length) : project.conditions.length}`; $('start').hidden = state !== 'initial'; $('conclusion').hidden = state !== 'completed'; $('conclusion').textContent = `探索结论 · ${project.plan.conclusion}`; $('interaction-hint').textContent = interaction.prompt || interaction.manipulation?.instruction || project.scene.instruction; renderExtra(); draw();
+    const canChoose = ['selecting', 'classifying', 'step', 'dragging'].includes(state); $('conditions').replaceChildren(...(manipulation ? [] : project.conditions.map((c, i) => { const b = document.createElement('button'); b.className = `condition${done.has(i) ? ' done' : ''}${active === i ? ' active' : ''}`; const sequenceLocked = interaction.mode === 'sequence' && i !== done.size; b.disabled = !canChoose || done.has(i) || sequenceLocked; b.innerHTML = `<span>${esc(c.label)}${sequenceLocked ? ' · 待解锁' : ''}</span><span>${done.has(i) ? '✓' : active === i ? '观察中…' : '↗'}</span>`; b.onclick = () => choose(i); return b; })));
   }
   function choose(i) { if (!['selecting', 'classifying', 'step'].includes(state) || done.has(i) || (interaction.mode === 'sequence' && i !== done.size)) return; const ticket = epoch; active = i; state = 'feedback'; const detail = interaction.mode === 'cause-effect' ? `${project.conditions[i].observation} 当前${interaction.controlLabel || '影响强度'}为 ${parameterValue}。` : project.conditions[i].observation; $('feedback').textContent = detail; render(); Promise.all([new Promise(resolve => later(resolve, project.spec.duration)), speak(detail)]).then(() => { if (ticket !== epoch) return; done.add(i); observations.push({index:i,text:detail}); active = -1; state = done.size === project.conditions.length ? 'completed' : project.plan.interactionType === 'classification' ? 'classifying' : (interaction.mode === 'process' || interaction.mode === 'sequence' ? 'step' : 'selecting'); render(); }); }
   $('title').textContent = project.plan.title; $('meta').textContent = `${project.plan.audience} · ${project.plan.interactionLabel}`; $('question').textContent = project.plan.question; $('feedback').textContent = project.scene.instruction;
-  $('start').onclick = () => { state = interaction.mode === 'classification' ? 'classifying' : interaction.mode === 'process' || interaction.mode === 'sequence' ? 'step' : 'selecting'; $('feedback').textContent = interaction.prompt || '请选择一个尚未完成的条件。'; render(); };
-  $('reset').onclick = () => { epoch++; timers.forEach(clearTimeout); timers.clear(); window.speechSynthesis?.cancel(); state = 'initial'; active = -1; done.clear(); observations.length = 0; parameterValue = interaction.min ?? 2; $('feedback').textContent = project.scene.instruction; render(); };
+  $('start').onclick = () => { state = interaction.mode === 'classification' ? 'classifying' : interaction.mode === 'process' || interaction.mode === 'sequence' ? 'step' : interaction.mode === 'manipulation' ? 'dragging' : 'selecting'; $('feedback').textContent = interaction.manipulation?.instruction || interaction.prompt || '请选择一个尚未完成的条件。'; render(); };
+  $('reset').onclick = () => { epoch++; timers.forEach(clearTimeout); timers.clear(); window.speechSynthesis?.cancel(); state = 'initial'; active = -1; done.clear(); observations.length = 0; Object.keys(placements).forEach(key => delete placements[key]); visitedZones.clear(); selectedDragId = ''; parameterValue = interaction.min ?? 2; $('feedback').textContent = project.scene.instruction; render(); };
   $('voice').onclick = () => { voice = !voice && 'speechSynthesis' in window; $('voice').textContent = voice ? '语音：开启' : '语音：关闭'; $('voice').setAttribute('aria-pressed', String(voice)); if (!voice) window.speechSynthesis?.cancel(); };
   if (!('speechSynthesis' in window)) { $('voice').disabled = true; $('voice').textContent = '语音不可用'; }
   render();

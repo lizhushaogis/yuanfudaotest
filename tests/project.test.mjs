@@ -7,10 +7,10 @@ test('a new process request produces a project, documents, and standalone page',
   assert.equal(project.plan.interactionType, 'process-simulation');
   assert.equal(project.plan.title, '水循环探索');
   assert.deepEqual(project.conditions.map(c => c.label), ['蒸发', '凝结', '降水']);
-  assert.equal(project.spec.states[1], 'step');
+  assert.equal(project.spec.states[1], 'dragging');
   const docs = projectDocuments(project);
   assert.ok(docs.plan.includes('过程模拟'));
-  assert.ok(docs.spec.includes('反馈期间所有条件按钮禁用'));
+  assert.ok(docs.spec.includes('可拖拽操控'));
   const html = projectHtml(project);
   assert.ok(html.includes('projectRuntime'));
   assert.ok(!html.includes('https://'));
@@ -28,7 +28,7 @@ test('interaction type and conditions change with a different request', () => {
 
 test('projects expose a topic-specific interaction plan and richer controls', () => {
   const cause = generateProject({text: '让学生调节光照强度，观察光合作用产生氧气的变化。'});
-  assert.equal(cause.interaction.mode, 'cause-effect');
+  assert.equal(cause.interaction.mode, 'manipulation');
   assert.equal(cause.interaction.controlLabel, '影响强度');
   assert.match(cause.interaction.sceneTitle, /叶片/);
   assert.ok(cause.interaction.userActions.length >= 2);
@@ -73,4 +73,20 @@ test('model interaction design is used instead of a fixed scenario', () => {
   assert.equal(project.interaction.sceneTitle, '潮汐闸门观察站');
   assert.equal(project.interaction.userActions[0].effect, '水线进入湿地，显示生物活动变化。');
   assert.match(projectDocuments(project).spec, /潮汐闸门观察站/);
+});
+
+test('model projects expose real topic-specific drag elements and zones', () => {
+  const project = generateProject({text: '研究潮汐如何影响海岸湿地的生物。'}, {project: {
+    title: '潮汐湿地观察台', interactionType: 'cause-effect', interactionDesign: {
+      sceneTitle: '潮汐闸门观察站', rationale: '把潮位变化与湿地生物活动放在同一个观察站中。', metaphor: '海岸闸门和湿地样方',
+      userActions: [{label: '抬高潮位', action: '拖动潮位旋钮', effect: '水线进入湿地。'}, {label: '记录退潮', action: '拖动水滴回到海面', effect: '水线后退并保留比较。'}], visualElements: ['潮位线', '湿地样方'],
+      directManipulation: {type: 'drag-route', instruction: '把潮位标记拖到涨潮和退潮区域，观察湿地水线变化。', draggableElements: [{id: 'tide_marker', label: '潮位标记', description: '表示当前海水高度', color: '#6caaea'}], dropZones: [{id: 'high_tide', label: '涨潮区', description: '水线进入湿地', accepts: ['tide_marker'], successFeedback: '湿地被海水淹过，观察生物活动。', errorFeedback: '先拖到涨潮区。'}, {id: 'low_tide', label: '退潮区', description: '水线退回海面', accepts: ['tide_marker'], successFeedback: '水线退后，比较生物活动差异。', errorFeedback: '完成涨潮后再观察退潮。'}], successFeedback: '完成涨潮和退潮的对照。', errorFeedback: '根据潮位顺序重新尝试。'},
+      feedbackRule: '每次放置都更新潮位线并反馈生物活动。', completionRule: '两种潮位都观察后归纳影响。'
+    }, conditions: [{label: '涨潮', observation: '水线进入湿地。'}, {label: '退潮', observation: '水线退回海面。'}]
+  }});
+  assert.equal(project.interaction.mode, 'manipulation');
+  assert.equal(project.interaction.manipulation.draggableElements[0].id, 'tide_marker');
+  assert.equal(project.interaction.manipulation.dropZones[1].accepts[0], 'tide_marker');
+  assert.match(projectHtml(project), /drag-item/);
+  assert.match(projectHtml(project), /drop-zone/);
 });
