@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {generateProject, validateProject, projectDocuments, projectHtml, bundleProjectFiles, inferSceneVariant} from '../public/project.js';
+import {generateProject, validateProject, projectDocuments, projectHtml, bundleProjectFiles, inferSceneVariant, interactionPlanFor} from '../public/project.js';
 
 test('a new process request produces a project, documents, and standalone page', () => {
   const project = generateProject({text: '给八年级做一个水循环探索，学生观察蒸发、凝结和降水。', subject: '科学'});
@@ -24,6 +24,17 @@ test('interaction type and conditions change with a different request', () => {
   const particles = generateProject({text: '观察温度升高时粒子运动速度如何变化。'});
   assert.equal(particles.plan.interactionType, 'particle-simulation');
   assert.ok(particles.spec.components.some(c => c.type === 'range'));
+});
+
+test('projects expose a topic-specific interaction plan and richer controls', () => {
+  const cause = generateProject({text: '让学生调节光照强度，观察光合作用产生氧气的变化。'});
+  assert.equal(cause.interaction.mode, 'cause-effect');
+  assert.equal(cause.interaction.controlLabel, '影响强度');
+  assert.match(projectHtml(cause), /interaction-hint/);
+  assert.match(projectHtml(cause), /result-meter/);
+  const sequence = interactionPlanFor({text: '追踪水循环的先后阶段'}, 'sequence-exploration');
+  assert.equal(sequence.mode, 'sequence');
+  assert.match(sequence.prompt, /顺序/);
 });
 
 test('topic-specific scenes and conditions are generated for carbon cycle requests', () => {

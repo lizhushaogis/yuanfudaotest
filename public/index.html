@@ -59,7 +59,7 @@
   </dialog>
 
   <dialog id="guide-dialog" class="dialog guide-dialog"><div class="dialog-heading"><div><div class="eyebrow">ABOUT THE PROJECT</div><h2>从想法到实验的六步</h2></div><button class="icon-close" data-close="guide-dialog" aria-label="关闭">×</button></div>
-    <p>这个工作台把一条教学需求变成一个可检查、可运行、可下载的交互项目。本地演示可以直接运行；要让模型参与新项目生成，需要连接 API。你不需要先懂提示词工程。</p>
+    <p>这个工作台把一条教学需求变成一个可检查、可运行、可下载的交互项目。本地生成器无需 API，任何打开链接的人都可以独立输入、修改、预览和下载；要让模型参与新项目生成，才需要连接模型代理。你不需要先懂提示词工程。</p>
     <div class="guide-grid"><article><b>01 · 输入需求</b><p>写一句“给谁学、学什么、希望学生做什么”。</p></article><article><b>02 · 结构化</b><p>提取主题、目标、条件，并判断适合的交互类型。</p></article><article><b>03 · 生成方案</b><p>生成探究问题、观察反馈、结论和状态机。</p></article><article><b>04 · 校验落实</b><p>检查主题相关性、条件数量、状态转移和不能发生的错误。</p></article><article><b>05 · 运行预览</b><p>在网页里点击开始，逐项观察反馈并完成实验。</p></article><article><b>06 · 导出交付</b><p>下载项目 JSON、Markdown 文档、Prompt 和独立 HTML。</p></article></div>
     <div class="method-panel"><div class="eyebrow">HOW THE WORK IS DONE</div><h3>这项工作不是“让 AI 随便写一页网页”</h3><p>先把教学目标拆成可观察的条件，再把条件落实为按钮、反馈、完成条件和重置规则；最后用同一个项目 JSON 同步方案、文档、资源和预览。模型负责理解和提出草案，系统负责结构校验、主题相关性检查和可执行预览，人工负责学科准确性审核。</p><div class="prompt-layers"><span><b>角色</b>教育交互设计助手</span><span><b>任务</b>把需求变成项目草案</span><span><b>上下文</b>学习者、主题、目标、条件</span><span><b>约束</b>只用已实现交互，不编造数据</span><span><b>格式</b>固定 JSON 字段</span><span><b>验收</b>主题相关、可操作、可重置</span></div><div class="plain-prompt"><strong>提示词工程，用大白话说：</strong>不是写一句“帮我生成”，而是把角色、背景、任务、边界、输出格式和检查标准一次说清楚，让模型稳定地产出能被程序接住的结果。</div></div>
     <div class="guide-mode"><strong>本地生成器与模型模式</strong><p>本地生成器会根据新的自然语言需求推断交互类型，并生成项目 JSON、文档和网页；模型模式通过代理让模型补充需求理解。两种模式都经过结构校验，实验为概念示意，正式课程仍需学科审核和用户测试。</p></div>
