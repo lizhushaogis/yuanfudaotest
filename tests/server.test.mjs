@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {once} from 'node:events';
-import {createServer,parseModelResult} from '../server.mjs';
+import {createServer,parseModelResult,resolveModelBase} from '../server.mjs';
 import {presets,normalizeBrief} from '../public/engine.js';
 const brief=normalizeBrief({...presets[0],preset:'root'});
 test('proxy protects credentials and validates the model result',async t=>{
@@ -16,6 +16,13 @@ test('proxy protects credentials and validates the model result',async t=>{
   assert.equal((await fetch(base+'/.env')).status,404);assert.equal((await fetch(base+'/server.mjs')).status,404);
 });
 test('model output cannot silently replace approved conditions',()=>{assert.throws(()=>parseModelResult(JSON.stringify({experiment:{...brief,options:brief.options.slice(1)}}),'plan',brief));assert.throws(()=>parseModelResult('not json','plan',brief));});
+test('model project must stay related to the request and provider base can be inferred',()=>{
+  const unrelated={project:{title:'星系探索',interactionType:'process-simulation',conditions:[{label:'恒星',observation:'恒星发光。'},{label:'行星',observation:'行星绕恒星运行。'}]}};
+  assert.throws(()=>parseModelResult(JSON.stringify(unrelated),'project',brief,{text:'请制作水循环过程交互'}),/不相关/);
+  assert.equal(resolveModelBase('','deepseek-chat'),'https://api.deepseek.com/v1');
+  assert.equal(resolveModelBase('','qwen-plus'),'https://dashscope.aliyuncs.com/compatible-mode/v1');
+  assert.equal(resolveModelBase('https://custom.example/v1','deepseek-chat'),'https://custom.example/v1');
+});
 
 test('project endpoint accepts a new request and returns a constrained model draft', async t => {
   const server=createServer({LAB_API_BASE:'https://provider.test/v1',LAB_API_KEY:'secret-upstream',LAB_MODEL:'model-id',LAB_ALLOWED_ORIGIN:'http://127.0.0.1:4173'},async()=>new Response(JSON.stringify({choices:[{message:{content:JSON.stringify({project:{title:'水循环探索',interactionType:'process-simulation',conditions:[{label:'蒸发',observation:'水受热变成水蒸气。'},{label:'凝结',observation:'水蒸气遇冷形成水滴。'}]}})}}]}),{status:200}));

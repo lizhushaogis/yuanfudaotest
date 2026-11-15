@@ -28,7 +28,7 @@
       <aside class="workflow-panel">
         <div class="panel-kicker">你的生产流程 <span>01 — 06</span></div>
         <nav id="step-nav" class="step-nav" aria-label="生产步骤"></nav>
-        <div class="workflow-foot"><span class="foot-symbol">↳</span><strong>第一次使用？</strong><p>先在第一步写一句需求，不需要 API。生成后再逐步查看方案、预览和下载文件。</p><button id="load-example" class="text-button">直接看一个完整结果 <span>↗</span></button></div>
+        <div class="workflow-foot"><span class="foot-symbol">↳</span><strong>第一次使用？</strong><p>先在第一步写一句需求；本地演示可直接运行。要让模型参与生成，请先连接 AI。</p><button id="load-example" class="text-button">直接看一个完整结果 <span>↗</span></button></div>
       </aside>
 
       <div class="workspace-main">
@@ -49,18 +49,19 @@
 
   <dialog id="settings-dialog" class="dialog">
     <form id="settings-form"><div class="dialog-heading"><div><div class="eyebrow">MODEL CONNECTION</div><h2>连接你的模型服务</h2></div><button type="button" class="icon-close" data-close="settings-dialog" aria-label="关闭">×</button></div>
-      <p>要让模型根据每次的新需求生成内容，需要先运行本项目的 Node 代理。<strong>API Key 粘贴在项目根目录的 .env 文件里，不要粘贴到网页或 GitHub。</strong>网页这里只填写代理地址。</p>
+      <p>要让模型根据每次的新需求生成内容，需要先运行本项目的 Node 代理。你只需要准备<strong>模型名称和 API Key</strong>；模型服务地址会按模型名称自动选择。<strong>API Key 粘贴在项目根目录的 .env 文件里，不要粘贴到网页或 GitHub。</strong></p>
       <label for="service-url">模型代理地址</label><input id="service-url" type="url" placeholder="http://127.0.0.1:4173" autocomplete="off"><small>本机按 README 启动后填 http://127.0.0.1:4173；如果你把代理部署到云端，就填云端 HTTPS 根地址。GitHub Pages 本身只提供静态页面。</small>
       <label for="service-token">服务访问口令（如有）</label><input id="service-token" type="password" placeholder="仅在当前页面内存中使用" autocomplete="off"><small>这是你为代理服务设置的访问口令，不是模型供应商的 API Key。</small>
-      <div class="api-paste-guide"><strong>API Key 的准确粘贴位置</strong><code>LAB_API_KEY=你的模型 API Key</code><span>文件位置：项目根目录 <code>.env</code>。同时填写 <code>LAB_API_BASE</code> 和 <code>LAB_MODEL</code>，再运行 <code>node --env-file=.env server.mjs</code>。</span></div>
+      <div class="api-paste-guide"><strong>你只需要提供两项</strong><code>LAB_MODEL=你的模型名称</code><code>LAB_API_KEY=你的模型 API Key</code><span>文件位置：项目根目录 <code>.env</code>。其余代理地址、允许来源和网页配置由项目默认处理；保存后运行 <code>node --env-file=.env server.mjs</code>。</span></div>
       <div class="connection-message" id="connection-message" role="status"></div>
       <div class="dialog-actions"><button type="button" class="btn btn-outline" id="use-template">继续用本地生成器</button><button type="submit" class="btn btn-primary">验证并连接</button></div>
     </form>
   </dialog>
 
   <dialog id="guide-dialog" class="dialog guide-dialog"><div class="dialog-heading"><div><div class="eyebrow">ABOUT THE PROJECT</div><h2>从想法到实验的六步</h2></div><button class="icon-close" data-close="guide-dialog" aria-label="关闭">×</button></div>
-    <p>这个工作台把一条教学需求变成一个可检查、可运行、可下载的交互项目。你不需要先懂提示词工程，也不需要先连接 API。</p>
-    <div class="guide-grid"><article><b>01 · 输入需求</b><p>写一句“给谁学、学什么、希望学生做什么”。</p></article><article><b>02 · 生成项目</b><p>系统推断交互类型，生成条件、反馈和结论。</p></article><article><b>03 · 审核方案</b><p>检查探究问题、观察条件和教学结论是否合理。</p></article><article><b>04 · 查看规则</b><p>查看开始、选择、反馈、完成和重置的状态机。</p></article><article><b>05 · 运行预览</b><p>在网页里点击开始，逐项观察反馈并完成实验。</p></article><article><b>06 · 导出交付</b><p>下载项目 JSON、Markdown 文档、Prompt 和独立 HTML。</p></article></div>
+    <p>这个工作台把一条教学需求变成一个可检查、可运行、可下载的交互项目。本地演示可以直接运行；要让模型参与新项目生成，需要连接 API。你不需要先懂提示词工程。</p>
+    <div class="guide-grid"><article><b>01 · 输入需求</b><p>写一句“给谁学、学什么、希望学生做什么”。</p></article><article><b>02 · 结构化</b><p>提取主题、目标、条件，并判断适合的交互类型。</p></article><article><b>03 · 生成方案</b><p>生成探究问题、观察反馈、结论和状态机。</p></article><article><b>04 · 校验落实</b><p>检查主题相关性、条件数量、状态转移和不能发生的错误。</p></article><article><b>05 · 运行预览</b><p>在网页里点击开始，逐项观察反馈并完成实验。</p></article><article><b>06 · 导出交付</b><p>下载项目 JSON、Markdown 文档、Prompt 和独立 HTML。</p></article></div>
+    <div class="method-panel"><div class="eyebrow">HOW THE WORK IS DONE</div><h3>这项工作不是“让 AI 随便写一页网页”</h3><p>先把教学目标拆成可观察的条件，再把条件落实为按钮、反馈、完成条件和重置规则；最后用同一个项目 JSON 同步方案、文档、资源和预览。模型负责理解和提出草案，系统负责结构校验、主题相关性检查和可执行预览，人工负责学科准确性审核。</p><div class="prompt-layers"><span><b>角色</b>教育交互设计助手</span><span><b>任务</b>把需求变成项目草案</span><span><b>上下文</b>学习者、主题、目标、条件</span><span><b>约束</b>只用已实现交互，不编造数据</span><span><b>格式</b>固定 JSON 字段</span><span><b>验收</b>主题相关、可操作、可重置</span></div><div class="plain-prompt"><strong>提示词工程，用大白话说：</strong>不是写一句“帮我生成”，而是把角色、背景、任务、边界、输出格式和检查标准一次说清楚，让模型稳定地产出能被程序接住的结果。</div></div>
     <div class="guide-mode"><strong>本地生成器与模型模式</strong><p>本地生成器会根据新的自然语言需求推断交互类型，并生成项目 JSON、文档和网页；模型模式通过代理让模型补充需求理解。两种模式都经过结构校验，实验为概念示意，正式课程仍需学科审核和用户测试。</p></div>
     <button class="btn btn-primary" data-close="guide-dialog">开始探索 →</button>
   </dialog>
