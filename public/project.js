@@ -21,6 +21,16 @@ export function inferInteractionType(text = '') {
   return 'compare-conditions';
 }
 
+export function inferSceneVariant(text = '', type = '') {
+  const s = String(text).toLowerCase();
+  if (/碳循环|碳原子|碳元素/.test(s)) return 'carbon-cycle';
+  if (/水循环|蒸发|凝结|降水/.test(s)) return 'water-cycle';
+  if (/光合作用|叶绿体|二氧化碳.*氧气/.test(s)) return 'photosynthesis';
+  if (type === 'classification') return 'classification';
+  if (type === 'particle-simulation') return 'particles';
+  return type || 'generic';
+}
+
 export function inferTitle(text = '') {
   const s = clean(text, 500);
   const match = s.match(/(?:给|为)[^，。]{0,30}(?:做|制作|设计)一个?(.+?)(?=，|。|让|学生|$)/) || s.match(/(?:做|制作|设计)一个?(.+?)(?=，|。|让|学生|$)/);
@@ -54,6 +64,14 @@ function conditionsFor(request, type) {
   ];
   if (/垃圾|分类/.test(text)) return [
     ['可回收物', '纸张、塑料、玻璃等材料可进入回收处理流程。'], ['厨余垃圾', '食物残余等有机物需要单独收集处理。'], ['其他垃圾', '难以回收利用的混合废弃物进入其他处理流程。'],
+  ];
+  if (/碳循环|碳原子|碳元素/.test(text)) return [
+    ['植物吸收：光合作用', '绿色植物从空气中吸收二氧化碳，把碳固定在有机物中。'],
+    ['沿食物链传递：动物取食', '动物取食植物或其他动物，碳沿食物链进入新的生物体。'],
+    ['呼吸释放：动植物呼吸', '动植物呼吸分解有机物，把一部分碳以二氧化碳形式释放回空气。'],
+    ['分解归还：遗体被分解', '分解者分解遗体和排遗物，使碳回到土壤并继续参与循环。'],
+    ['埋藏成燃料：漫长地质过程', '部分有机物被埋藏，在漫长地质过程中形成化石燃料。'],
+    ['人类燃烧：化石燃料', '燃烧化石燃料把储存的碳快速释放为二氧化碳。'],
   ];
   if (type === 'particle-simulation') return [['较低参数', '粒子保持运动，平均运动更缓慢。'], ['中等参数', '粒子的平均运动速度提高。'], ['较高参数', '粒子运动更剧烈；动画仅作定性示意。']];
   if (type === 'classification') return [['类别一', '观察对象符合第一类的特征。'], ['类别二', '观察对象符合第二类的特征。'], ['需要复核', '证据不足时先记录观察，再检查分类依据。']];
@@ -100,7 +118,7 @@ export function generateProject(rawRequest, model = null) {
     version: 2, id: `project_${Date.now().toString(36)}`, source: model ? 'model' : 'local-generator',
     request, plan: { title, subject: request.subject, audience: clean(candidate.audience || request.audience, 80), goal, question, conclusion, interactionType: type, interactionLabel: interactionCatalog[type].label },
     spec: { states: statesFor(type), components: componentsFor(type, conditions), duration: 900, completionRule: '所有条件至少观察一次后显示结论', resetRule: '重置取消计时器与朗读并清空进度' },
-    scene: { kind: type, title, palette: colors.slice(0, conditions.length), instruction: clean(candidate.intro || '点击开始，再逐项选择一个条件，观察反馈并记录发现。', 500) },
+    scene: { kind: type, variant: candidate.scene?.variant || inferSceneVariant(request.text, type), title, palette: colors.slice(0, conditions.length), instruction: clean(candidate.intro || '点击开始，再逐项选择一个条件，观察反馈并记录发现。', 500) },
     conditions: conditions.map((c, i) => ({ id: `condition_${i + 1}`, label: c[0], observation: c[1], color: colors[i % colors.length] })),
     assets: [], acceptance: [], generatedAt: new Date().toISOString(),
   };
@@ -143,7 +161,12 @@ export function projectRuntime(project) {
   function draw() {
     const type = project.plan.interactionType, opts = project.conditions, palette = opts.map(o => o.color);
     let html = '';
-    if (type === 'process-simulation' || type === 'sequence-exploration') {
+    if (project.scene.variant === 'carbon-cycle') {
+      const centerX = 180, centerY = 145, radius = 92;
+      html = `<circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="none" stroke="#8da2e4" stroke-width="3" stroke-dasharray="8 7" class="flow-arrow"/><circle cx="${centerX}" cy="${centerY}" r="34" fill="#eef2ff" stroke="#8da2e4" stroke-width="2"/><text x="${centerX}" y="${centerY+5}" text-anchor="middle" fill="#52659c" font-size="12">碳循环</text>${opts.map((o, i) => { const angle = -Math.PI / 2 + i * Math.PI * 2 / opts.length; const x = centerX + Math.cos(angle) * radius; const y = centerY + Math.sin(angle) * radius; return `<g class="pulse-node"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="27" fill="${palette[i]}" opacity=".86"/><text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" fill="#ffffff" font-size="9">${esc(o.label.split('：')[0].slice(0, 6))}</text></g>`; }).join('')}`;
+    } else if (project.scene.variant === 'water-cycle') {
+      html = `<path d="M55 210 C30 120 100 48 180 72 C265 36 330 105 305 210" fill="none" class="flow-arrow"/><path d="M55 210 Q180 270 305 210" fill="none" stroke="#7caed4" stroke-width="4"/><text x="180" y="258" text-anchor="middle" fill="#5d89ad" font-size="11">地表水 ↔ 大气水</text>${opts.map((o, i) => { const x = [75, 180, 285][i % 3], y = i === 1 ? 72 : 195; return `<g class="pulse-node"><circle cx="${x}" cy="${y}" r="29" fill="${palette[i]}" opacity=".84"/><text x="${x}" y="${y + 4}" text-anchor="middle" fill="#ffffff" font-size="10">${esc(o.label.slice(0, 6))}</text></g>`; }).join('')}`;
+    } else if (type === 'process-simulation' || type === 'sequence-exploration') {
       html = `<path d="M36 145 ${opts.map((_, i) => `${90 + i * 78} ${i % 2 ? 190 : 92}`).join(' L ')}" fill="none" class="flow-arrow"/>${opts.map((o, i) => `<g class="pulse-node"><circle cx="${90 + i * 78}" cy="${i % 2 ? 190 : 92}" r="29" fill="${palette[i]}" opacity=".78"/><text x="${90 + i * 78}" y="${i % 2 ? 195 : 97}" text-anchor="middle" fill="white" font-size="11">${esc(o.label.slice(0, 7))}</text></g>`).join('')}`;
     } else if (type === 'classification') {
       html = `${opts.map((o, i) => `<rect x="${27 + i * 112}" y="70" width="94" height="155" rx="15" fill="${palette[i]}" opacity=".2" stroke="${palette[i]}" stroke-width="3"/><circle cx="${74 + i * 112}" cy="139" r="25" fill="${palette[i]}" opacity=".75"/><text x="${74 + i * 112}" y="203" text-anchor="middle" fill="#5b6c82" font-size="11">${esc(o.label.slice(0, 8))}</text>`).join('')}`;

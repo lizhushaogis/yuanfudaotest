@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {generateProject, validateProject, projectDocuments, projectHtml, bundleProjectFiles} from '../public/project.js';
+import {generateProject, validateProject, projectDocuments, projectHtml, bundleProjectFiles, inferSceneVariant} from '../public/project.js';
 
 test('a new process request produces a project, documents, and standalone page', () => {
   const project = generateProject({text: '给八年级做一个水循环探索，学生观察蒸发、凝结和降水。', subject: '科学'});
@@ -24,6 +24,15 @@ test('interaction type and conditions change with a different request', () => {
   const particles = generateProject({text: '观察温度升高时粒子运动速度如何变化。'});
   assert.equal(particles.plan.interactionType, 'particle-simulation');
   assert.ok(particles.spec.components.some(c => c.type === 'range'));
+});
+
+test('topic-specific scenes and conditions are generated for carbon cycle requests', () => {
+  const project = generateProject({text: '给七年级制作碳循环探秘，让学生追踪碳原子从植物到动物、土壤和化石燃料的旅行。'});
+  assert.equal(inferSceneVariant(project.request.text, project.plan.interactionType), 'carbon-cycle');
+  assert.equal(project.scene.variant, 'carbon-cycle');
+  assert.ok(project.conditions.length >= 5);
+  assert.ok(project.conditions.some(condition => condition.label.includes('燃烧')));
+  assert.ok(projectHtml(project).includes('碳循环'));
 });
 
 test('model content is constrained into the same project schema', () => {
