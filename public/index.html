@@ -28,7 +28,7 @@
       <aside class="workflow-panel">
         <div class="panel-kicker">你的生产流程 <span>01 — 06</span></div>
         <nav id="step-nav" class="step-nav" aria-label="生产步骤"></nav>
-        <div class="workflow-foot"><span class="foot-symbol">↳</span><strong>第一次使用？</strong><p>先在第一步写一句需求；本地演示可直接运行。要让模型参与生成，请先连接 AI。</p><button id="load-example" class="text-button">直接看一个完整结果 <span>↗</span></button></div>
+        <div class="workflow-foot"><span class="foot-symbol">↳</span><strong>第一次使用？</strong><p>先在第一步写一句需求；本地演示可直接运行。要让模型参与生成，请先连接 AI。</p><button id="load-example" class="text-button">看 AI 生成的海洋实验 <span>↗</span></button></div>
       </aside>
 
       <div class="workspace-main">
@@ -49,10 +49,12 @@
 
   <dialog id="settings-dialog" class="dialog">
     <form id="settings-form"><div class="dialog-heading"><div><div class="eyebrow">MODEL CONNECTION</div><h2>连接你的模型服务</h2></div><button type="button" class="icon-close" data-close="settings-dialog" aria-label="关闭">×</button></div>
-      <p>要让模型根据每次的新需求生成内容，需要先运行本项目的 Node 代理。你只需要准备<strong>模型名称和 API Key</strong>；模型服务地址会按模型名称自动选择。<strong>API Key 粘贴在项目根目录的 .env 文件里，不要粘贴到网页或 GitHub。</strong></p>
-      <label for="service-url">模型代理地址</label><input id="service-url" type="url" placeholder="http://127.0.0.1:4173" autocomplete="off"><small>本机代理填 http://127.0.0.1:4173；GitHub Pages 也能连接本机代理，但 .env 的 LAB_ALLOWED_ORIGIN 必须包含 https://lizhushaogis.github.io。若代理部署到云端，请填云端 HTTPS 根地址。</small>
-      <label for="service-token">服务访问口令（如有）</label><input id="service-token" type="password" placeholder="仅在当前页面内存中使用" autocomplete="off"><small>这是你为代理服务设置的访问口令，不是模型供应商的 API Key。</small>
-      <div class="api-paste-guide"><strong>你只需要提供两项</strong><code>LAB_MODEL=你的模型名称</code><code>LAB_API_KEY=你的模型 API Key</code><span>文件位置：项目根目录 <code>.env</code>。其余代理地址、允许来源和网页配置由项目默认处理；保存后运行 <code>node --env-file=.env server.mjs</code>。</span></div>
+      <p>填写你自己的 OpenAI 兼容模型服务。API Key 仅保存在当前页面内存中，刷新后需重新填写。</p>
+      <label>服务商<select id="model-provider"><option value="deepseek">DeepSeek</option><option value="volc">火山引擎 / 豆包</option><option value="qwen">通义千问</option><option value="custom">自定义 OpenAI 兼容服务</option></select></label>
+      <label for="service-url">模型 API URL</label><input id="service-url" type="url" required value="https://api.deepseek.com/v1" autocomplete="off"><small>支持 API 根地址或完整 /chat/completions 地址。浏览器直连需要服务商允许跨域；遇到跨域限制请使用支持浏览器调用的兼容网关。</small>
+      <label for="model-name">模型名称 / Endpoint ID</label><input id="model-name" required value="deepseek-flash" autocomplete="off">
+      <label for="model-output">网页最大输出 Token 数</label><input id="model-output" type="number" min="1024" max="131072" value="8192"><small>需在模型允许范围内；复杂场景可按模型容量调高，避免网页被截断。</small>
+      <label for="service-token">API Key</label><input id="service-token" type="password" required placeholder="填写你的 API Key" autocomplete="off">
       <div class="connection-message" id="connection-message" role="status"></div>
       <div class="dialog-actions"><button type="button" class="btn btn-outline" id="use-template">继续用本地生成器</button><button type="submit" class="btn btn-primary">验证并连接</button></div>
     </form>

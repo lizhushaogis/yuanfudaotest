@@ -1,0 +1,708 @@
+<!doctype html><html lang="zh-CN"><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;max-width:100%;min-width:0}img,svg,canvas{max-width:100%}button,input,select,textarea{font:inherit}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body>
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>海洋分层探索 · 潜水艇与生物适应</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #0a1a2f;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      color: #e6f1ff;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 10px;
+    }
+    .app-wrapper {
+      width: 100%;
+      max-width: 900px;
+      background: #0d2138;
+      border-radius: 32px;
+      padding: 18px 16px 22px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.7), inset 0 1px 3px rgba(255,255,255,0.08);
+      border: 1px solid #2c4b6e;
+    }
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-align: center;
+      margin-bottom: 4px;
+      color: #c8e7ff;
+      text-shadow: 0 2px 8px #003366;
+    }
+    .subhead {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #9ac7e7;
+      margin-bottom: 16px;
+      padding: 0 6px;
+      border-bottom: 1px dashed #2e577a;
+      padding-bottom: 12px;
+    }
+    /* 主视觉区域——海洋场景 */
+    .ocean-container {
+      position: relative;
+      width: 100%;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #041b2d;
+      box-shadow: inset 0 0 30px #00000066, 0 6px 14px #0000004d;
+      border: 2px solid #1f4b6e;
+    }
+    .scene-svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      transition: background 0.2s;
+    }
+    /* 深度滑杆区域 */
+    .control-panel {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 16px;
+      margin-top: 18px;
+      background: #112a41;
+      padding: 14px 16px;
+      border-radius: 40px;
+      border: 1px solid #295a7a;
+    }
+    .depth-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      white-space: nowrap;
+      background: #0b1f30;
+      padding: 6px 14px;
+      border-radius: 28px;
+      font-size: 0.95rem;
+      border: 1px solid #2f6080;
+    }
+    .depth-label span {
+      color: #6bc4ff;
+      font-weight: 700;
+      font-size: 1.1rem;
+      min-width: 4.5ch;
+      text-align: right;
+    }
+    input[type="range"] {
+      flex: 1;
+      min-width: 160px;
+      height: 10px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: linear-gradient(to right, #7fe0ff, #1f6b9c, #0b1f30);
+      border-radius: 20px;
+      outline: none;
+      border: 1px solid #2f6080;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #f0f9ff;
+      border: 3px solid #2f9bdf;
+      box-shadow: 0 0 12px #4ab4ff;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #f0f9ff;
+      border: 3px solid #2f9bdf;
+      box-shadow: 0 0 12px #4ab4ff;
+      cursor: pointer;
+    }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px 10px;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      background: #0c1e2e;
+      padding: 12px 16px;
+      border-radius: 40px;
+      border: 1px solid #1d4560;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0b1a29;
+      padding: 6px 14px;
+      border-radius: 26px;
+      border: 1px solid #24516f;
+      flex: 1 1 auto;
+      min-width: 130px;
+    }
+    .stat-icon {
+      font-size: 1.2rem;
+    }
+    .stat-value {
+      font-weight: 700;
+      color: #b1e2ff;
+      margin-left: auto;
+      font-variant-numeric: tabular-nums;
+    }
+    .record-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .btn {
+      background: #1a486b;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      border: 1px solid #3f7ea8;
+      flex: 1 1 auto;
+      min-width: 110px;
+      box-shadow: 0 4px 6px #00000033;
+    }
+    .btn:hover {
+      background: #236a99;
+      border-color: #7fc9ff;
+    }
+    .btn:active {
+      transform: scale(0.96);
+    }
+    .btn.secondary {
+      background: #1f394e;
+      border-color: #3d617a;
+    }
+    .observation-log {
+      background: #0b1a29;
+      border-radius: 24px;
+      padding: 12px 16px;
+      margin-top: 14px;
+      border: 1px solid #23516e;
+      font-size: 0.85rem;
+      max-height: 120px;
+      overflow-y: auto;
+      color: #b7d9f5;
+      line-height: 1.5;
+    }
+    .observation-log p {
+      margin: 2px 0;
+      border-left: 3px solid #4ea3df;
+      padding-left: 10px;
+    }
+    .observation-log .log-time {
+      color: #629dc9;
+      font-size: 0.7rem;
+      margin-right: 8px;
+    }
+    details {
+      margin-top: 18px;
+      background: #0e253a;
+      border-radius: 20px;
+      padding: 12px 16px;
+      border: 1px solid #24516f;
+      font-size: 0.85rem;
+    }
+    summary {
+      font-weight: 600;
+      color: #93ceff;
+      cursor: pointer;
+      padding: 4px 0;
+      list-style: none;
+    }
+    summary::-webkit-details-marker {
+      display: none;
+    }
+    summary::before {
+      content: "🌊 ";
+      margin-right: 6px;
+    }
+    .asset-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .asset-item {
+      display: flex;
+      gap: 10px;
+      padding: 8px 10px;
+      background: #0d1f30;
+      border-radius: 14px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+    .asset-name {
+      font-weight: 600;
+      color: #b3defa;
+      min-width: 110px;
+    }
+    .asset-desc {
+      color: #a0c4dd;
+    }
+    /* 响应式 */
+    @media (max-width: 500px) {
+      .app-wrapper { padding: 12px 10px 16px; }
+      h1 { font-size: 1.3rem; }
+      .control-panel { border-radius: 30px; padding: 12px 12px; }
+      .depth-label { font-size: 0.85rem; padding: 5px 10px; }
+      .stat-item { min-width: 110px; font-size: 0.8rem; padding: 6px 10px; }
+      .btn { padding: 8px 12px; font-size: 0.8rem; min-width: 90px; }
+    }
+    @media (max-width: 380px) {
+      .stat-item { min-width: 100%; }
+    }
+    /* 减少动态效果 */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+
+
+  <div class="app-wrapper">
+    <h1>🌊 海洋分层探索</h1>
+    <div class="subhead">拖动深度滑杆 · 观察光照、压强与生物行为（示意模型，数值为简化估算）</div>
+
+    <!-- 主视觉 SVG 海洋场景 -->
+    <div class="ocean-container">
+      <svg class="scene-svg" id="oceanScene" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="海洋分层场景，包含潜艇、鱼群、海龟、光束和气泡">
+        <!-- 背景渐变定义 -->
+        <defs>
+          <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#0e5a7a" />
+            <stop offset="15%" stop-color="#0b4a68" />
+            <stop offset="40%" stop-color="#083a52" />
+            <stop offset="75%" stop-color="#03212f" />
+            <stop offset="100%" stop-color="#010e16" />
+          </linearGradient>
+          <!-- 光束渐变 -->
+          <linearGradient id="lightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffffaa" stop-opacity="0.45" />
+            <stop offset="80%" stop-color="#ffffbb" stop-opacity="0.05" />
+          </linearGradient>
+          <!-- 海底渐变 -->
+          <linearGradient id="floorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#1d3b3a" />
+            <stop offset="100%" stop-color="#122423" />
+          </linearGradient>
+          <!-- 气泡渐变 -->
+          <radialGradient id="bubbleGrad" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8" />
+            <stop offset="70%" stop-color="#c0e4ff" stop-opacity="0.3" />
+            <stop offset="100%" stop-color="#88c4ff" stop-opacity="0.1" />
+          </radialGradient>
+          <!-- 潜艇主体渐变 -->
+          <linearGradient id="subGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#e0e9f0" />
+            <stop offset="100%" stop-color="#7b8c9b" />
+          </linearGradient>
+        </defs>
+
+        <!-- 海洋背景 -->
+        <rect width="800" height="500" fill="url(#oceanGrad)" />
+
+        <!-- 分层标记线（透光层/微光层/深海） -->
+        <g opacity="0.3" stroke="#9ac7e7" stroke-width="1.5" stroke-dasharray="6 8">
+          <line x1="0" y1="120" x2="800" y2="120" />
+          <line x1="0" y1="280" x2="800" y2="280" />
+        </g>
+        <text x="15" y="115" font-size="12" fill="#b1e2ff" opacity="0.6">透光层</text>
+        <text x="15" y="275" font-size="12" fill="#b1e2ff" opacity="0.6">微光层</text>
+        <text x="15" y="440" font-size="12" fill="#b1e2ff" opacity="0.6">深海层</text>
+
+        <!-- 动态光束 (阳光穿透) -->
+        <g id="lightRays" opacity="0.5">
+          <polygon points="100,0 180,0 320,500 240,500" fill="url(#lightGrad)" />
+          <polygon points="400,0 460,0 580,500 520,500" fill="url(#lightGrad)" opacity="0.7" />
+          <polygon points="650,0 710,0 760,500 700,500" fill="url(#lightGrad)" opacity="0.6" />
+        </g>
+
+        <!-- 海底地形 (精细插画) -->
+        <g id="seaFloor">
+          <path d="M0,470 Q80,420 160,450 Q240,480 320,440 Q400,400 500,455 Q600,490 700,445 Q760,415 800,450 L800,500 L0,500 Z" fill="url(#floorGrad)" />
+          <path d="M20,485 Q100,460 180,480 Q260,500 340,475 Q420,450 520,485 Q600,500 700,475 Q760,465 800,480 L800,500 L20,500 Z" fill="#1e3a36" opacity="0.7" />
+          <!-- 海底小石子 -->
+          <ellipse cx="120" cy="485" rx="12" ry="5" fill="#31534a" />
+          <ellipse cx="380" cy="470" rx="18" ry="7" fill="#2b4a42" />
+          <ellipse cx="620" cy="490" rx="14" ry="6" fill="#27433c" />
+        </g>
+
+        <!-- 海草/珊瑚装饰 -->
+        <g id="seaweed">
+          <path d="M50,480 Q60,440 55,410 Q70,430 80,400 Q90,430 100,415 Q110,450 120,480 Z" fill="#1e6d5e" opacity="0.8" />
+          <path d="M700,470 Q710,430 705,400 Q720,425 730,390 Q740,425 750,415 Q760,450 770,470 Z" fill="#2b7a5e" opacity="0.7" />
+        </g>
+
+        <!-- 气泡组 (动态动画) -->
+        <g id="bubbleGroup" class="bubbles">
+          <circle cx="200" cy="300" r="4" fill="url(#bubbleGrad)" />
+          <circle cx="205" cy="310" r="2.5" fill="url(#bubbleGrad)" />
+          <circle cx="195" cy="330" r="5" fill="url(#bubbleGrad)" />
+          <circle cx="210" cy="340" r="3" fill="url(#bubbleGrad)" />
+          <circle cx="188" cy="355" r="6" fill="url(#bubbleGrad)" />
+          <circle cx="600" cy="280" r="5" fill="url(#bubbleGrad)" />
+          <circle cx="610" cy="305" r="3.5" fill="url(#bubbleGrad)" />
+          <circle cx="590" cy="330" r="4" fill="url(#bubbleGrad)" />
+          <circle cx="605" cy="355" r="6" fill="url(#bubbleGrad)" />
+        </g>
+
+        <!-- 深海鱼 (适应特征：发光器和尖牙) -->
+        <g id="deepFish" class="deep-fish">
+          <!-- 深海鱼1 (左侧) -->
+          <g id="fish1">
+            <path d="M270,390 Q285,375 310,385 Q325,380 340,390 Q330,400 315,398 Q310,405 295,405 Q285,400 270,390 Z" fill="#5a7a8a" />
+            <path d="M270,390 Q260,380 255,392 Q260,398 270,390 Z" fill="#4a6a7a" />
+            <circle cx="305" cy="386" r="2.5" fill="#ffdd88" opacity="0.9" />
+            <circle cx="315" cy="388" r="1.5" fill="#ffdd88" />
+            <path d="M295,405 L300,412 L305,405 Z" fill="#3a5a6a" />
+            <!-- 发光器 -->
+            <circle cx="330" cy="392" r="3" fill="#fff5b0" opacity="0.9" />
+            <circle cx="335" cy="388" r="2" fill="#fff5b0" opacity="0.7" />
+          </g>
+          <!-- 深海鱼2 (右侧) -->
+          <g id="fish2">
+            <path d="M530,360 Q550,340 580,355 Q600,348 620,360 Q605,375 585,370 Q575,380 555,378 Q540,372 530,360 Z" fill="#4a6e7e" />
+            <path d="M530,360 Q518,350 512,365 Q520,372 530,360 Z" fill="#3a5e6e" />
+            <circle cx="575" cy="356" r="2.5" fill="#ffe27a" opacity="0.9" />
+            <circle cx="585" cy="358" r="1.5" fill="#ffe27a" />
+            <!-- 尖牙 -->
+            <path d="M560,366 L563,373 L566,366 Z" fill="#ffffff" />
+            <path d="M568,367 L571,374 L574,367 Z" fill="#ffffff" />
+            <!-- 发光器 -->
+            <circle cx="610" cy="362" r="3" fill="#fff5b0" opacity="0.9" />
+          </g>
+        </g>
+
+        <!-- 水母 (半透明，用CSS动画轻微浮动) -->
+        <g id="jellyfish" class="jellyfish" opacity="0.85">
+          <path d="M660,170 Q680,140 700,170 Q710,185 700,200 Q690,215 680,200 Q670,215 660,200 Q650,185 660,170 Z" fill="#c0a0e0" opacity="0.6" />
+          <path d="M670,195 Q675,220 680,240 Q685,260 690,240 Q695,220 700,195" stroke="#d0b0f0" fill="none" stroke-width="2" opacity="0.7" />
+          <path d="M675,200 Q672,225 680,250" stroke="#d0b0f0" fill="none" stroke-width="1.5" opacity="0.5" />
+        </g>
+
+        <!-- 海龟 (用肺呼吸，需要浮上海面) -->
+        <g id="turtle" class="turtle">
+          <!-- 龟壳 -->
+          <ellipse cx="440" cy="100" rx="28" ry="18" fill="#4e7a4e" stroke="#2d4d2d" stroke-width="2" />
+          <path d="M430,92 Q440,80 450,92" stroke="#2d4d2d" fill="none" stroke-width="1.5" />
+          <path d="M438,82 Q440,78 442,82" stroke="#2d4d2d" />
+          <!-- 头部 -->
+          <circle cx="468" cy="98" r="9" fill="#6a9e6a" />
+          <circle cx="472" cy="95" r="2" fill="#0a1a0a" />
+          <!-- 脚 -->
+          <ellipse cx="427" cy="115" rx="8" ry="5" fill="#6a9e6a" />
+          <ellipse cx="450" cy="115" rx="8" ry="5" fill="#6a9e6a" />
+          <!-- 小尾巴 -->
+          <path d="M418,102 Q410,106 414,110" stroke="#4e7a4e" fill="none" stroke-width="3" stroke-linecap="round" />
+        </g>
+
+        <!-- 潜水艇 (可移动) -->
+        <g id="submarine" class="submarine">
+          <!-- 艇体 -->
+          <ellipse cx="400" cy="250" rx="70" ry="30" fill="url(#subGrad)" stroke="#4a6070" stroke-width="2" />
+          <!-- 舷窗 -->
+          <circle cx="370" cy="245" r="12" fill="#1a3d5a" stroke="#92b8d0" stroke-width="2" />
+          <circle cx="400" cy="245" r="12" fill="#1a3d5a" stroke="#92b8d0" stroke-width="2" />
+          <circle cx="430" cy="245" r="12" fill="#1a3d5a" stroke="#92b8d0" stroke-width="2" />
+          <!-- 潜望镜 -->
+          <rect x="420" y="210" width="8" height="25" fill="#7b8c9b" />
+          <circle cx="424" cy="208" r="6" fill="#5a7a8a" stroke="#9ab8c8" stroke-width="1.5" />
+          <!-- 螺旋桨 -->
+          <ellipse cx="330" cy="260" rx="6" ry="12" fill="#5a6e7e" />
+          <line x1="324" y1="260" x2="336" y2="260" stroke="#3a4e5e" stroke-width="2" />
+          <!-- 发光灯 -->
+          <circle cx="460" cy="255" r="4" fill="#fff9b0" opacity="0.9" />
+        </g>
+      </svg>
+    </div>
+
+    <!-- 深度控制 -->
+    <div class="control-panel">
+      <div class="depth-label">🚢 深度 <span id="depthDisplay">0</span> m</div>
+      <input type="range" id="depthSlider" min="0" max="1000" value="0" step="1" aria-label="潜水深度滑杆">
+    </div>
+
+    <!-- 实时数据：光照、压强、温度/区域 -->
+    <div class="stats">
+      <div class="stat-item"><span class="stat-icon">💡</span> 光照 <span class="stat-value" id="lightValue">100%</span></div>
+      <div class="stat-item"><span class="stat-icon">⚙️</span> 压强 <span class="stat-value" id="pressureValue">1.0 atm</span></div>
+      <div class="stat-item"><span class="stat-icon">🐢</span> 海龟 <span class="stat-value" id="turtleStatus">水面</span></div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="record-area">
+      <button class="btn" id="recordBtn">📝 记录观察</button>
+      <button class="btn secondary" id="resetBtn">🔄 重置</button>
+    </div>
+
+    <!-- 观察记录 -->
+    <div class="observation-log" id="observationLog">
+      <p><span class="log-time">▶</span> 拖动滑杆，观察不同深度的生物与物理变化。</p>
+    </div>
+
+    <!-- 资源说明（可折叠） -->
+    <details>
+      <summary>📦 资源说明（内联实现）</summary>
+      <div class="asset-list">
+        <div class="asset-item"><span class="asset-name">ocean.svg / 场景</span><span class="asset-desc">内联 SVG 绘制海水渐变、海底地形、光束、分层线与气泡群。</span></div>
+        <div class="asset-item"><span class="asset-name">animals.svg / 生物</span><span class="asset-desc">SVG 海龟、水母、深海鱼（带发光器与尖牙）。动画通过 CSS/JS 实现游动与浮沉。</span></div>
+        <div class="asset-item"><span class="asset-name">光束与气泡</span><span class="asset-desc">光束使用渐变多边形，气泡组带有 CSS 漂浮动画（尊重 prefers-reduced-motion）。</span></div>
+        <div class="asset-item"><span class="asset-name">潜艇与滑杆</span><span class="asset-desc">SVG 潜艇随深度滑杆移动；滑杆实时更新深度、光照、压强与海龟状态。</span></div>
+      </div>
+    </details>
+  </div>
+
+  <script>
+    (function() {
+      // 获取元素
+      const depthSlider = document.getElementById('depthSlider');
+      const depthDisplay = document.getElementById('depthDisplay');
+      const lightValue = document.getElementById('lightValue');
+      const pressureValue = document.getElementById('pressureValue');
+      const turtleStatus = document.getElementById('turtleStatus');
+      const observationLog = document.getElementById('observationLog');
+      const recordBtn = document.getElementById('recordBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const submarine = document.getElementById('submarine');
+      const turtle = document.getElementById('turtle');
+      const lightRays = document.getElementById('lightRays');
+      const deepFish = document.getElementById('deepFish');
+      const jellyfish = document.getElementById('jellyfish');
+      const bubbleGroup = document.getElementById('bubbleGroup');
+      const oceanScene = document.getElementById('oceanScene');
+
+      // 状态变量
+      let currentDepth = 0; // 米
+      const MAX_DEPTH = 1000;
+
+      // 资源：所有SVG元素均为内联，无外部请求
+      // 动画：使用 requestAnimationFrame 或 CSS；但为了简单且尊重 prefers-reduced-motion，直接由滑杆驱动状态
+
+      // 检查是否偏好减少动画
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // 计算并更新场景
+      function updateScene(depthMeters) {
+        // 1. 深度数值显示
+        depthDisplay.textContent = Math.round(depthMeters);
+
+        // 2. 光照衰减：指数衰减模拟，水面100%，1000米约1%
+        // 使用简单线性+指数混合 (更直观)
+        const lightPercent = 100 * Math.exp(-depthMeters / 90);
+        lightValue.textContent = lightPercent.toFixed(0) + '%';
+
+        // 3. 压强：每10米增加约1个大气压，水面1atm
+        const pressure = 1 + depthMeters / 10;
+        pressureValue.textContent = pressure.toFixed(1) + ' atm';
+
+        // 4. 海龟位置：深度<50米为水面附近，>50米则显示“下潜中”，但海龟必须呼吸，所以逻辑上我们会让它靠近水面，这里模拟它一旦深度超过50就显示“需呼吸”，但为了教育目的，我们让海龟始终在水面附近，但用文字提示
+        if (depthMeters <= 50) {
+          turtleStatus.textContent = '水面呼吸';
+        } else if (depthMeters <= 200) {
+          turtleStatus.textContent = '下潜中(需呼吸)';
+        } else {
+          turtleStatus.textContent = '深潜！需返回水面';
+        }
+
+        // 5. 潜艇位置：深度映射到y坐标 (50m ~ 470m) 深度0→y≈120，深度1000→y≈440
+        // 避免潜艇跑出画面
+        const subY = 120 + (depthMeters / MAX_DEPTH) * 300; // 120~420
+        submarine.setAttribute('transform', `translate(0, ${subY - 250})`); // 原submarine中心y=250，所以偏移量
+
+        // 6. 海龟位置：海龟用肺呼吸，所以它应该在靠近水面的区域，但为了表现它有时会下潜但必须返回水面，我们让它在一定深度内浮动，但永远不会到深海，并且根据深度轻微调整
+        // 海龟基本待在水面附近，但若深度变大，表现它“被推近水面”？实际上海龟不会到深海，所以我们让它在深度>200时更贴近水面，并显示提醒
+        let turtleY = 100; // 基线
+        if (depthMeters > 200) {
+          turtleY = 80; // 更靠上表示紧急呼吸
+        } else if (depthMeters > 50) {
+          turtleY = 90 + (depthMeters / 200) * 20; // 90~110
+        } else {
+          turtleY = 100 + (depthMeters / 50) * 10; // 100~110
+        }
+        // 海龟原来的cy约100，我们只微调,不改变整体结构
+        // 为了让海龟有动态，可以轻微平移
+        turtle.setAttribute('transform', `translate(0, ${turtleY - 100})`);
+
+        // 7. 光束透明度随深度减弱
+        const rayOpacity = 0.7 * Math.exp(-depthMeters / 120);
+        lightRays.setAttribute('opacity', rayOpacity);
+
+        // 8. 深海鱼可见度：在越深的地方越明显 （300米以下增加不透明度）
+        const fishOpacity = Math.min(1, Math.max(0.3, depthMeters / 500 + 0.3));
+        deepFish.setAttribute('opacity', fishOpacity);
+        // 深海鱼轻微移动 (如果用户没开启减少动画，我们用CSS动画代替，但这里用静态)
+
+        // 9. 水母在微光层可见，透明度随深度变化
+        const jellyOpacity = depthMeters < 200 ? 0.4 : (depthMeters < 600 ? 0.75 : 0.5);
+        jellyfish.setAttribute('opacity', jellyOpacity);
+
+        // 10. 背景色调整? 由渐变控制，但也可以改变覆盖层，我们稍微微调海洋渐变？不用。
+
+        // 11. 气泡动画已存在，不需要额外处理
+
+        // 12. 更新潜艇灯光强度? 这个可忽略。
+        
+        // 额外：根据深度改变潜艇舷窗灯光颜色? 暂不实现。
+      }
+
+      // 初始化
+      function setDepth(val) {
+        currentDepth = Math.min(MAX_DEPTH, Math.max(0, val));
+        depthSlider.value = currentDepth;
+        updateScene(currentDepth);
+      }
+
+      // 滑杆事件
+      depthSlider.addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        setDepth(val);
+      });
+
+      // 记录观察
+      function addLog(message) {
+        const p = document.createElement('p');
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'log-time';
+        timeSpan.textContent = '▶';
+        p.appendChild(timeSpan);
+        p.appendChild(document.createTextNode(message));
+        observationLog.appendChild(p);
+        observationLog.scrollTop = observationLog.scrollHeight;
+        // 限制条目数量避免过长
+        if (observationLog.children.length > 6) {
+          observationLog.removeChild(observationLog.children[1]); // 保留第一条指引
+        }
+      }
+
+      recordBtn.addEventListener('click', () => {
+        const depth = currentDepth;
+        const light = lightValue.textContent;
+        const pressure = pressureValue.textContent;
+        const turtle = turtleStatus.textContent;
+        let zone = '';
+        if (depth < 200) zone = '透光层';
+        else if (depth < 1000) zone = '微光层';
+        else zone = '深海层';
+        // 生成观察描述
+        let desc = `深度${Math.round(depth)}米（${zone}），光照${light}，压强${pressure}。`;
+        if (depth > 600) desc += ' 深海鱼发光器与尖牙适应黑暗环境。';
+        if (depth > 200) desc += ' 海龟需返回水面呼吸。';
+        if (depth > 50 && depth <= 200) desc += ' 海龟仍在进行呼吸准备。';
+        if (depth <= 50) desc += ' 海龟在水面呼吸顺畅。';
+        addLog(desc);
+      });
+
+      // 重置
+      resetBtn.addEventListener('click', () => {
+        // 重置滑杆和场景
+        setDepth(0);
+        // 清空日志，保留第一条提示
+        while (observationLog.children.length > 1) {
+          observationLog.removeChild(observationLog.lastChild);
+        }
+        // 重置额外动画状态
+        // 如果有任何 requestAnimationFrame 可以取消，这里没有使用所以不需要
+        // 重置潜艇/海龟变换
+        submarine.setAttribute('transform', 'translate(0, 0)');
+        turtle.setAttribute('transform', 'translate(0, 0)');
+        lightRays.setAttribute('opacity', 0.5);
+        deepFish.setAttribute('opacity', 0.6);
+        jellyfish.setAttribute('opacity', 0.85);
+      });
+
+      // 初始化场景
+      setDepth(0);
+
+      // 可选：为深海鱼增加一点CSS动画（游动）—— 尊重prefers-reduced-motion
+      if (!prefersReducedMotion) {
+        // 添加style动画 (或者用SVG animate，但为了简单用CSS)
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+          .bubbles circle {
+            animation: floatUp 4s infinite ease-in-out;
+          }
+          .bubbles circle:nth-child(2) { animation-duration: 4.5s; animation-delay: 0.5s; }
+          .bubbles circle:nth-child(3) { animation-duration: 5s; animation-delay: 0.2s; }
+          .bubbles circle:nth-child(4) { animation-duration: 4.2s; animation-delay: 0.8s; }
+          .bubbles circle:nth-child(5) { animation-duration: 4.8s; animation-delay: 0.3s; }
+          .bubbles circle:nth-child(6) { animation-duration: 4.3s; animation-delay: 0.6s; }
+          .bubbles circle:nth-child(7) { animation-duration: 5.2s; animation-delay: 0.1s; }
+          .bubbles circle:nth-child(8) { animation-duration: 4.6s; animation-delay: 0.9s; }
+          .bubbles circle:nth-child(9) { animation-duration: 4.4s; animation-delay: 0.4s; }
+          @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 0.8; }
+            50% { transform: translateY(-20px); opacity: 0.5; }
+            100% { transform: translateY(-40px); opacity: 0; }
+          }
+          .jellyfish {
+            animation: jellyFloat 6s infinite alternate ease-in-out;
+          }
+          @keyframes jellyFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-12px); }
+          }
+          .deep-fish {
+            animation: fishSwim 12s infinite alternate ease-in-out;
+          }
+          @keyframes fishSwim {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(15px); }
+          }
+          /* 海龟轻微摆动 */
+          .turtle {
+            animation: turtleBob 5s infinite alternate ease-in-out;
+          }
+          @keyframes turtleBob {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+          }
+        `;
+        document.head.appendChild(styleSheet);
+      } else {
+        // 减少动画：移除动画类
+      }
+
+      // 为了美观和正确，确保潜艇和海龟的transform被正确设置，但CSS动画里的transform会覆盖，所以需要调整
+      // 所以我们把CSS动画放在内部组上，而不是直接应用在turtle/submarine上（因为它们有JS transform）
+      // 但是我们已经用了ID选择器 .turtle 和 .submarine 应用了动画，这会覆盖JS设置的transform。
+      // 修正：使用CSS动画在内部元素上，或者避免在潜艇/海龟上使用动画。
+      // 我们改进：将动画加在包裹组上？更简单：取消潜艇和海龟的动画，因为深度变化已经产生了运动。但为了生动，可以在内部元素上加。
+      // 由于时间关系，我们移除潜艇/海龟的CSS动画，保留气泡、水母、深海鱼的。
+      if (!prefersReducedMotion) {
+        // 移除刚才添加的关于turtle和submarine的动画（我们重新加一个样式表覆盖）
+        // 简单方法：重新定义并追加覆盖
+        const styleOverride = document.createElement('style');
+        styleOverride.textContent = `
+          .turtle { animation: none; }
+          .submarine { animation: none; }
+        `;
+        document.head.appendChild(styleOverride);
+      }
+    })();
+  </script>
+
+</body></html>

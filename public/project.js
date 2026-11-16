@@ -348,7 +348,13 @@ export function projectDocuments(project) {
   const spec = `# ${p.title} · 交互执行规格\n\n## AI 生成的主题场景\n\n- 场景名称：${interaction.sceneTitle || "主题探索台"}\n- 设计理由：${interaction.rationale || "围绕本主题组织可观察的操作。"}\n- 场景隐喻：${interaction.metaphor || "观察与比较工作台"}\n\n### 用户动作\n\n${actionRows || '1. 选择主题条件并查看反馈。'}\n\n### 画面元素\n\n${visualRows || '- 主题对象主图'}\n\n### 可拖拽操控\n\n- 类型：${manipulation.type || 'drag-sort'}\n- 操作说明：${manipulation.instruction || '把元素拖到合适的主题区域。'}\n- 可拖元素：\n${elementRows || '- 主题对象：需要观察的元素'}\n- 放置区域：\n${zoneRows || '- 主题区域：根据证据放置元素'}\n- 全部放对后的反馈：${manipulation.successFeedback || '操作完成，查看主题归纳。'}\n\n- 反馈规则：${interaction.feedbackRule || "每次操作都显示与主题相关的观察反馈。"}\n- AI 生成的完成判断：${interaction.completionRule || project.spec.completionRule}\n\n## 实现骨架（系统内部）\n\n- 内部状态骨架：${interaction.label || "观察比较台"}；仅用于保证按钮、反馈、重置和完成状态安全，不是用户选择的模板。\n- 主要控件：${interaction.controlLabel || "观察条件"}\n- 引导语：${interaction.prompt || "选择不同条件，比较反馈后记录发现。"}\n- 观察维度：${interaction.dimension || "现象差异"}\n\n## 状态机\n\n\`${project.spec.states.join(' → ')}\`\n\n- 初始态：${project.scene.instruction}\n- 完成条件：${project.spec.completionRule}\n- 重置规则：${project.spec.resetRule}\n- 反馈时长：${project.spec.duration} ms；语音开启时等待动画和朗读都结束。\n\n## 组件\n\n${project.spec.components.map(c => `- ${c.type}：${c.label}`).join('\n')}\n\n## 验收规则\n\n${project.acceptance.map(a => `- [ ] ${a}`).join('\n')}\n`;
   const assets = `# ${p.title} · 资源清单\n\n| 文件 | 类型 | 目的 | 状态 |\n| --- | --- | --- | --- |\n${project.assets.map(a => `| ${a.file} | ${a.kind} | ${a.purpose.replaceAll('|', '／')} | ${a.status} |`).join('\n')}\n\n程序图形是概念示意，正式课程仍需美术、配音和学科审核。\n`;
   const prompt = `# ${p.title} · 复现提示词\n\n你是教育交互前端开发者。请根据下方项目 JSON 生成可离线打开的 HTML。不要添加未在配置中声明的操作，不生成虚构测量数据，不依赖 CDN。\n\n\`\`\`json\n${JSON.stringify(project, null, 2)}\n\`\`\`\n\n必须实现：开始入口、${project.spec.states.join(' → ')} 状态转移、反馈期间锁定、完成后结论、重置取消旧任务、键盘可操作和移动端布局。完成后逐条执行验收清单。\n`;
-  return { plan, spec, assets, prompt };
+  const {generatedHtml, ...definition}=project;
+  const freePrompt = project.freePlan || project.freeSpec ? `# 教学交互网页制作任务
+
+根据以下教案、交互设计和资源清单制作完整可离线运行的 HTML。以 freePlan 和 freeSpec 为准，自由选择控件与交互逻辑，不套用兼容字段中的固定条件、拖拽模板和完成规则。全部资源必须实际用内联 SVG、Canvas、CSS、WebAudio 或浏览器语音实现；不得引用不存在的文件。采用可识别的主题插画、因果动画与响应式布局，提供可重复实验、反馈、重置、证据归纳与资源实现说明。
+
+${JSON.stringify(definition,null,2)}` : prompt;
+  return { plan: project.freePlan || plan, spec: project.freeSpec || spec, assets, prompt: freePrompt };
 }
 
 export const projectMarkup = `<main class="generated-lab"><header><div><span class="eyebrow">GENERATED LEARNING EXPERIENCE</span><h1 id="title"></h1><p id="meta"></p></div><button id="reset" class="quiet">↺ 重新探索</button></header><p id="question" class="question"></p><div class="generated-grid"><section class="visual-card"><div id="visual"></div><span class="visual-note">程序生成概念示意 · 非测量数据</span></section><section class="control-card"><div class="progress-line"><strong id="progress"></strong><button id="voice" class="quiet" aria-pressed="false">语音：关闭</button></div><div id="interaction-hint" class="interaction-hint"></div><div id="parameter"></div><div id="workspace-extra"></div><div id="conditions"></div><button id="start" class="primary">开始探索 →</button><div id="feedback" class="feedback" role="status" aria-live="polite"></div></section></div><section id="conclusion" class="conclusion" hidden></section></main>`;
@@ -449,6 +455,7 @@ export function projectRuntime(project) {
 }
 
 export function projectHtml(project) {
+  if(project.generatedHtml) return project.generatedHtml;
   const data = JSON.stringify(project).replaceAll('<', '\\u003c').replaceAll('\u2028', '\\u2028').replaceAll('\u2029', '\\u2029');
   const title = String(project.plan.title).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>${projectStyles}</style></head><body>${projectMarkup}<script>(${projectRuntime.toString()})(${data});<\/script></body></html>`;
