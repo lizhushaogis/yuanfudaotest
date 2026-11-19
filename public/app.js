@@ -1,4 +1,5 @@
 import {creativeMessages,readCreativeResult,protectHtml,providerOptions} from './creative.js';
+import {mountPreview} from './preview.js';
 import {steps,presets,escapeHtml as e,normalizeBrief,buildConfig,buildDocuments,assetsFor,markdownToHtml,experimentHtml,bundleFiles,createZip} from './engine.js';
 import {generateProject,validateProject,projectDocuments,projectHtml,bundleProjectFiles,interactionCatalog,interactionPlanFor,inferTitle} from './project.js';
 
@@ -52,7 +53,7 @@ function render(){
   $('stage-content').innerHTML=n===0?renderBrief():n===5?renderPreview():renderDoc();
   const action=n===0?(state.project?'重新生成项目':'生成新的交互项目'):n===1?'确认方案，细化规格':n===2?'确认规格，提取资源':n===3?'确认资源，生成提示词':n===4?'生成交互网页并预览':'下载完整交付包';
   $('stage-footer').innerHTML=`<span class="footer-hint">${busy?'<span class="spinner"></span> 正在生成项目，请稍候…':n===0?(mode==='model'?'真实模型服务已连接':'本地生成器 · 无需密钥即可体验'):state.source==='model'?'模型辅助产出 · 请人工审核':state.source==='local-generator'?'本地生成产出 · 可继续人工审核':'示例模板 · 配置驱动预览'}</span><div class="footer-buttons">${n>0?'<button id="previous" class="btn btn-outline">← 上一步</button>':''}<button id="next" class="btn btn-primary" ${busy?'disabled':''}>${action} <span class="arrow">${n===5?'↓':'→'}</span></button></div>`;
-  if(n===5)$('experiment').srcdoc=state.project?projectHtml(state.project):experimentHtml(state.config);
+  if(n===5){const frame=$('experiment');const status=document.createElement('p');status.className='preview-status';status.id='preview-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');frame.before(status);mountPreview(frame,status,state.project?projectHtml(state.project):experimentHtml(state.config));}
   document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>navigate(+b.dataset.step));
   document.querySelectorAll('[data-file]').forEach(b=>b.onclick=()=>{const i=+b.dataset.file;const file=i===5?files()[5]:files()[i];download(file.name,file.content);});
   document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{if(hasProject&&!confirm('更换主题会清除当前生成的项目，继续吗？'))return;const brief=b.dataset.preset==='custom'?{...presetBrief(presets[0]),preset:'custom',title:'我的教学实验',goal:'',conclusion:'',options:[{label:'条件一',observation:'',color:'#7c91d7'},{label:'条件二',observation:'',color:'#73b79c'}]}:presetBrief(presets.find(p=>p.id===b.dataset.preset));state={...state,brief,request:b.dataset.preset==='custom'?{text:'',subject:'',constraints:''}:{text:`请制作一个${brief.title}教学交互：${brief.goal}`,subject:'科学',constraints:''},stage:0,unlocked:0,source:'template',project:null,config:null,docs:null};save();render();});
