@@ -1,3 +1,4 @@
+import {teachingPromptPolicy} from './prompt-policy.js';
 const clean = (value, max = 1600) => String(value ?? '').trim().replace(/\s+/g, ' ').slice(0, max);
 const cleanMultiline = (value, max = 5000) => String(value ?? '').trim().slice(0, max);
 const colors = ['#4eae8e', '#7c91d7', '#d6a261', '#bc99d7', '#6caaea', '#db9b9b'];
@@ -354,7 +355,7 @@ export function projectDocuments(project) {
 根据以下教案、交互设计和资源清单制作完整可离线运行的 HTML。以 freePlan 和 freeSpec 为准，自由选择控件与交互逻辑，不套用兼容字段中的固定条件、拖拽模板和完成规则。全部资源必须实际用内联 SVG、Canvas、CSS、WebAudio 或浏览器语音实现；不得引用不存在的文件。采用可识别的主题插画、因果动画与响应式布局，提供可重复实验、反馈、重置、证据归纳与资源实现说明。
 
 ${JSON.stringify(definition,null,2)}` : prompt;
-  return { plan: project.freePlan || plan, spec: project.freeSpec || spec, assets, prompt: freePrompt };
+  return { plan: project.freePlan || plan, spec: project.freeSpec || spec, assets, prompt: freePrompt + '\n\n' + teachingPromptPolicy };
 }
 
 export const projectMarkup = `<main class="generated-lab"><header><div><span class="eyebrow">GENERATED LEARNING EXPERIENCE</span><h1 id="title"></h1><p id="meta"></p></div><button id="reset" class="quiet">↺ 重新探索</button></header><p id="question" class="question"></p><div class="generated-grid"><section class="visual-card"><div id="visual"></div><span class="visual-note">程序生成概念示意 · 非测量数据</span></section><section class="control-card"><div class="progress-line"><strong id="progress"></strong><button id="voice" class="quiet" aria-pressed="false">语音：关闭</button></div><div id="interaction-hint" class="interaction-hint"></div><div id="parameter"></div><div id="workspace-extra"></div><div id="conditions"></div><button id="start" class="primary">开始探索 →</button><div id="feedback" class="feedback" role="status" aria-live="polite"></div></section></div><section id="conclusion" class="conclusion" hidden></section></main>`;
