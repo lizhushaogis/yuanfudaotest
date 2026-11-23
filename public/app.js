@@ -1,3 +1,4 @@
+import {hash as qualityHash} from './quality-model.js';
 import {mountEvaluation} from './evaluation.js';
 import {creativeMessages,readCreativeResult,protectHtml,providerOptions} from './creative.js';
 import {mountPreview} from './preview.js';
@@ -73,17 +74,25 @@ function draftBriefFromRequest(request){
   return normalizeBrief({...base,preset:'custom',title,audience:request.audience||base.audience||'9–12 岁学生',goal:request.text||base.goal,conclusion,options});
 }
 function navigate(n){if(busy)return;if(n===5&&state.source==='model'&&!state.project?.generatedHtml){state.stage=4;render();toast('请在提示词页点击生成预览，AI 将读取最新方案与资源。');return;}if(state.stage===0){try{const request=readRequest();const draft=draftBriefFromRequest(request);const requestChanged=state.project&&['text','subject','constraints'].some(key=>(request[key]||'')!==(state.request?.[key]||''));if(requestChanged){toast('需求有修改，请点击“重新生成项目”。');return;}state={...state,brief:draft,request:{...state.request,...request}};}catch(err){toast(err.message);return;}}state.stage=n;save();render();}
+let lastModelAttempt=null;
 async function callModel(stage,payload){
   if(!serviceToken||!connectedOrigin)throw new Error('请先连接你自己的模型服务。');
-  const response=await fetch(connectedOrigin,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${serviceToken}`},body:JSON.stringify({model:modelName,...providerOptions(connectedOrigin,modelName),messages:creativeMessages(stage,payload),...(stage==='html'?{max_tokens:Number($('model-output').value)||8192}:{})}),signal:AbortSignal.timeout(240000)});
-  const data=await response.json();if(!response.ok)throw new Error(data.error?.message||`模型请求失败（${response.status}）`);
-  if(data.choices?.[0]?.finish_reason==='length')throw new Error('模型输出被截断，请使用输出容量更大的模型重试。');
-  return readCreativeResult(stage,data.choices?.[0]?.message?.content);
+  const messages=creativeMessages(stage,payload),settings={...providerOptions(connectedOrigin,modelName),...(stage==='html'?{max_tokens:Number($('model-output').value)||8192}:{})};
+  const started=performance.now();let resultStatus='failed',usage=null,finishReason=null,httpStatus=null;
+  try{
+   const response=await fetch(connectedOrigin,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${serviceToken}`},body:JSON.stringify({model:modelName,messages,...settings}),signal:AbortSignal.timeout(240000)});httpStatus=response.status;
+   const data=await response.json();usage=data.usage?{prompt_tokens:data.usage.prompt_tokens??null,completion_tokens:data.usage.completion_tokens??null,total_tokens:data.usage.total_tokens??null}:null;
+   if(!response.ok){if(/balance|insufficient|余额/i.test(data.error?.message||''))resultStatus='balance';throw new Error(data.error?.message||`模型请求失败（${response.status}）`);}
+   finishReason=data.choices?.[0]?.finish_reason;
+   if(finishReason==='length'){resultStatus='truncated';throw new Error('模型输出到达本次输出上限，网页可能未完成。请核对最大输出Token、思考配置与模型支持范围，再重试。');}
+   const result=readCreativeResult(stage,data.choices?.[0]?.message?.content);resultStatus='success';return result;
+  }catch(err){if(err.name==='TimeoutError')resultStatus='timeout';throw err;}
+  finally{lastModelAttempt={id:crypto.randomUUID(),stage,model:modelName,promptVersion:qualityHash(messages[0]),requestHash:qualityHash(messages),config:JSON.stringify(settings),status:resultStatus,latencyMs:Math.round(performance.now()-started),usage,finishReason,httpStatus,at:new Date().toISOString()};try{const history=JSON.parse(localStorage.getItem('zx-generation-attempts')||'[]');history.push(lastModelAttempt);localStorage.setItem('zx-generation-attempts',JSON.stringify(history.slice(-200)));}catch{}}
 }
 async function buildPreview(){
   if(mode!=='model')throw new Error('自由交互网页需要连接模型；本地示例只能展示内置效果。');
   busy=true;renderBusy();
-  try{const {generatedHtml,...project}=state.project;const result=await callModel('html',{project,prompt:state.customPrompt||state.docs.prompt});state.project.generatedHtml=protectHtml(result.html);state.project.previewRevision=state.editVersion;save();}
+  try{const {generatedHtml,...project}=state.project;const result=await callModel('html',{project,prompt:state.customPrompt||state.docs.prompt});state.project.generatedHtml=protectHtml(result.html);state.project.generationMeta=lastModelAttempt;state.project.previewRevision=state.editVersion;save();}
   finally{busy=false;}
 }
 async function advance(){if(busy)return;try{
