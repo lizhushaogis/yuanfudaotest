@@ -1,0 +1,2 @@
+export function resultOf(checks){const values=Object.values(checks);if(values.includes('fail'))return 'fail';if(values.length===4&&values.every(v=>v==='pass'))return 'pass';return 'pending';}
+export function validateRecord(r){if(!r.version?.trim()||!r.artifact?.trim()||!r.evidence?.trim())throw Error('先填写本次产物在哪里，以及实际操作看到了什么；未生成的题不要保存为已评。');if(Object.values(r.checks).every(v=>v==='pending'))throw Error('请至少检查一项；没有把握的保持待确认。');return{...r,result:resultOf(r.checks)};}

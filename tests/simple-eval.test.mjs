@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {validateRecord,resultOf} from '../public/simple-model.js';
+const data=JSON.parse(readFileSync('public/data/evaluation-100-v1.json','utf8'));
+test('100 synthetic tasks have unique IDs, explicit steps and four checks',()=>{assert.equal(data.cases.length,100);assert.equal(new Set(data.cases.map(c=>c.id)).size,100);for(const c of data.cases){assert.equal(c.checks.length,4);assert.ok(c.prompt.length>100);assert.ok(c.steps.length>=4);}for(const [bucket,n] of Object.entries(data.coverage))assert.equal(data.cases.filter(c=>c.bucket===bucket).length,n);});
+test('partial checks cannot pass, failures remain failures',()=>{assert.equal(resultOf({a:'pass',b:'pass',c:'pending',d:'pass'}),'pending');assert.equal(resultOf({a:'fail',b:'pending',c:'pending',d:'pending'}),'fail');assert.throws(()=>validateRecord({version:'v1',checks:{a:'pending'}}),/产物/);});
