@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check public/app.js && node --check public/engine.js && node --check public/experiment.js && node --check public/project.js && node --check server.mjs && node --check public/creative.js && node --check public/quality-model.js && node --check public/quality.js && node --check public/evaluation.js"
+    "check": "node --check public/app.js && node --check public/engine.js && node --check public/experiment.js && node --check public/project.js && node --check server.mjs && node --check public/creative.js && node --check public/quality-model.js && node --check public/quality.js && node --check public/evaluation.js && node --check public/quality-help.js"
   },
   "engines": {
     "node": ">=20"
