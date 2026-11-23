@@ -4,3 +4,5 @@ test('unexecuted reviews cannot pass',()=>{assert.equal(summarize({}).score,null
 test('critical failure overrides perfect score',()=>{const r=valid();r.gates.science.status='fail';assert.match(summarize(r).status,/不通过/);assert.equal(summarize(r).score,100);});
 test('all evidence required and weighted threshold applied',()=>{const r=valid();assert.match(summarize(r).status,/建议进入/);r.cases.reset.status='pending';assert.match(summarize(r).status,/待验证/);r.cases.reset.status='pass';for(const d of dimensions)r.ratings[d.id].score=3;assert.equal(summarize(r).score,75);assert.match(summarize(r).status,/建议进入/);r.ratings.science.score=2;assert.match(summarize(r).status,/需修改/);});
 test('changing HTML or design invalidates prior version signature',()=>{assert.notEqual(signature({generatedHtml:'A'}),signature({generatedHtml:'B'}));assert.notEqual(signature({freeSpec:'A'}),signature({freeSpec:'B'}));});
+
+test("known functional failure cannot be reported as only pending",()=>{const r=valid();r.cases.reset.status="fail";assert.match(summarize(r).status,/不通过/);});
