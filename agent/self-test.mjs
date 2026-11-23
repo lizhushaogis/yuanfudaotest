@@ -1,0 +1,4 @@
+import {runAgent} from './runner.mjs';import {demoHtml,demoPlanner} from './demo.mjs';import path from 'node:path';
+for(const fixed of [false,true]){const r=await runAgent({html:demoHtml(fixed),planner:demoPlanner(),outputDir:path.resolve('agent-results'),timeoutMs:40000});console.log(JSON.stringify({fixture:fixed?'fixed':'broken',status:r.status,steps:r.events.filter(e=>e.kind==='action').length,screenshots:r.screenshots.length,id:r.id,error:r.error}));if(r.status!==(fixed?'passed':'failed'))process.exitCode=1;}
+
+const {readFile}=await import('node:fs/promises');const real=await runAgent({html:await readFile('public/examples/ocean.html','utf8'),planner:demoPlanner(),outputDir:path.resolve('agent-results'),timeoutMs:40000});console.log(JSON.stringify({fixture:'existing-ocean-example',status:real.status,id:real.id,error:real.error}));if(real.status!=='passed')process.exitCode=1;

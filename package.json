@@ -7,9 +7,14 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check public/app.js && node --check public/engine.js && node --check public/experiment.js && node --check public/project.js && node --check server.mjs && node --check public/creative.js && node --check public/quality-model.js && node --check public/quality.js && node --check public/evaluation.js && node --check public/quality-help.js && node --check public/simple-eval.js && node --check public/simple-model.js && node --check public/auto-engine.js && node --check public/auto-eval.js && node --check public/review-policy.js"
+    "check": "node --check public/app.js && node --check public/engine.js && node --check public/experiment.js && node --check public/project.js && node --check server.mjs && node --check public/creative.js && node --check public/quality-model.js && node --check public/quality.js && node --check public/evaluation.js && node --check public/quality-help.js && node --check public/simple-eval.js && node --check public/simple-model.js && node --check public/auto-engine.js && node --check public/auto-eval.js && node --check public/review-policy.js && node --check agent/runner.mjs && node --check agent/server.mjs",
+    "agent": "node agent/server.mjs",
+    "agent:selftest": "node agent/self-test.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "playwright": "1.65.1"
   }
 }

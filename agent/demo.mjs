@@ -1,0 +1,4 @@
+import {practiceHtml} from '../public/quality-help.js';
+export const demoHtml=practiceHtml;
+// Deterministic observation-driven self-test, not an LLM agent.
+export function demoPlanner(){let stage=0;return async messages=>{const last=JSON.parse(messages.at(-1).content),nodes=last.observation.nodes;const range=nodes.find(n=>n.type==='range'),list=nodes.find(n=>n.isList),record=nodes.find(n=>n.tag==='button'&&/记录/.test(n.label)),reset=nodes.find(n=>n.tag==='button'&&/重置/.test(n.label));const actions=[{tool:'set_value',target:range?.id,value:500},{tool:'click',target:record?.id},{tool:'checkpoint',phase:'before_reset',listTarget:list?.id,rangeTarget:range?.id},{tool:'click',target:reset?.id},{tool:'checkpoint',phase:'after_reset',listTarget:list?.id,rangeTarget:range?.id},{tool:'finish',summary:'执行器自测完成：由程序断言决定结果，不使用模型评分。'}];return actions[stage++]||{tool:'finish'};};}
